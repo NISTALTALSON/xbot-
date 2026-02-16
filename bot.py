@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-X News Bot - Automatically posts AI and Cybersecurity news to X/Twitter
+Bluesky News Bot - Automatically posts AI and Cybersecurity news to Bluesky
 """
 
 import os
 import feedparser
-import tweepy
 import time
 from datetime import datetime
 import random
 import hashlib
 import json
+import requests
 
 # RSS Feeds for AI and Cybersecurity news
 RSS_FEEDS = [
@@ -41,7 +41,6 @@ def save_posted_item(item_id):
     """Save posted item ID to avoid duplicates"""
     posted = load_posted_items()
     posted.append(item_id)
-    # Keep only last 500 items to prevent file from growing too large
     posted = posted[-500:]
     with open(POSTED_FILE, 'w') as f:
         json.dump(posted, f)
@@ -59,7 +58,7 @@ def fetch_news():
         try:
             print(f"Fetching from: {feed_url}")
             feed = feedparser.parse(feed_url)
-            for entry in feed.entries[:5]:  # Get top 5 from each feed
+            for entry in feed.entries[:5]:
                 all_entries.append({
                     'title': entry.get('title', 'No title'),
                     'link': entry.get('link', ''),
@@ -73,61 +72,77 @@ def fetch_news():
     
     return all_entries
 
-def format_tweet(entry):
-    """Format entry into a tweet (280 char limit)"""
+def format_post(entry):
+    """Format entry into a Bluesky post (300 char limit)"""
     title = entry['title']
     link = entry['link']
-    
-    # Add relevant hashtags
     hashtags = "\n\n#AI #CyberSecurity #InfoSec"
-    
-    # Calculate available space
-    max_title_length = 280 - len(link) - len(hashtags) - 3  # -3 for spacing
+    max_title_length = 300 - len(link) - len(hashtags) - 3
     
     if len(title) > max_title_length:
         title = title[:max_title_length-3] + "..."
     
-    tweet = f"{title}\n\n{link}{hashtags}"
-    
-    return tweet
+    post = f"{title}\n\n{link}{hashtags}"
+    return post
 
-def post_to_x(tweet_text):
-    """Post tweet to X using API v2"""
+def create_bluesky_session(handle, app_password):
+    """Create authenticated session with Bluesky"""
     try:
-        # Get credentials from environment variables
-        consumer_key = os.environ.get('X_CONSUMER_KEY')
-        consumer_secret = os.environ.get('X_CONSUMER_SECRET')
-        access_token = os.environ.get('X_ACCESS_TOKEN')
-        access_token_secret = os.environ.get('X_ACCESS_TOKEN_SECRET')
-        
-        if not all([consumer_key, consumer_secret, access_token, access_token_secret]):
-            print("ERROR: Missing API credentials!")
-            return False
-        
-        # Authenticate
-        client = tweepy.Client(
-            consumer_key=consumer_key,
-            consumer_secret=consumer_secret,
-            access_token=access_token,
-            access_token_secret=access_token_secret
+        resp = requests.post(
+            "https://bsky.social/xrpc/com.atproto.server.createSession",
+            json={"identifier": handle, "password": app_password}
         )
-        
-        # Post tweet
-        response = client.create_tweet(text=tweet_text)
-        print(f"✓ Tweet posted successfully! ID: {response.data['id']}")
-        return True
-        
+        resp.raise_for_status()
+        return resp.json()
     except Exception as e:
-        print(f"✗ Error posting tweet: {e}")
+        print(f"Error creating session: {e}")
+        return None
+
+def post_to_bluesky(post_text, session):
+    """Post to Bluesky"""
+    try:
+        resp = requests.post(
+            "https://bsky.social/xrpc/com.atproto.repo.createRecord",
+            headers={"Authorization": f"Bearer {session['accessJwt']}"},
+            json={
+                "repo": session["did"],
+                "collection": "app.bsky.feed.post",
+                "record": {
+                    "$type": "app.bsky.feed.post",
+                    "text": post_text,
+                    "createdAt": datetime.utcnow().isoformat() + "Z"
+                }
+            }
+        )
+        resp.raise_for_status()
+        print(f"✓ Post published successfully!")
+        return True
+    except Exception as e:
+        print(f"✗ Error posting: {e}")
         return False
 
 def main():
     """Main bot logic"""
     print(f"\n{'='*50}")
-    print(f"X News Bot - Starting at {datetime.now()}")
+    print(f"Bluesky News Bot - Starting at {datetime.now()}")
     print(f"{'='*50}\n")
     
-    # Fetch news
+    handle = os.environ.get('BLUESKY_HANDLE')
+    app_password = os.environ.get('BLUESKY_APP_PASSWORD')
+    
+    if not handle or not app_password:
+        print("ERROR: Missing Bluesky credentials!")
+        return
+    
+    print("Authenticating with Bluesky...")
+    session = create_bluesky_session(handle, app_password)
+    
+    if not session:
+        print("Failed to authenticate. Exiting.")
+        return
+    
+    print("✓ Authentication successful!\n")
+    
     print("Fetching news from RSS feeds...")
     entries = fetch_news()
     print(f"Found {len(entries)} total entries\n")
@@ -136,10 +151,7 @@ def main():
         print("No entries found. Exiting.")
         return
     
-    # Load previously posted items
     posted_items = load_posted_items()
-    
-    # Filter out already posted items
     new_entries = [e for e in entries if e['id'] not in posted_items]
     print(f"Found {len(new_entries)} new entries\n")
     
@@ -147,28 +159,25 @@ def main():
         print("No new entries to post. Exiting.")
         return
     
-    # Shuffle and pick random entries to post (2-3 tweets per run)
     random.shuffle(new_entries)
     to_post = new_entries[:random.randint(2, 3)]
     
-    # Post tweets
     for i, entry in enumerate(to_post, 1):
         print(f"\n[{i}/{len(to_post)}] Posting:")
         print(f"  Title: {entry['title'][:60]}...")
         print(f"  Source: {entry['source']}")
         
-        tweet_text = format_tweet(entry)
+        post_text = format_post(entry)
         
-        if post_to_x(tweet_text):
+        if post_to_bluesky(post_text, session):
             save_posted_item(entry['id'])
             print("  Status: ✓ Posted and saved")
         else:
             print("  Status: ✗ Failed to post")
         
-        # Rate limiting: wait between tweets
         if i < len(to_post):
-            wait_time = random.randint(30, 60)
-            print(f"  Waiting {wait_time}s before next tweet...")
+            wait_time = random.randint(10, 20)
+            print(f"  Waiting {wait_time}s before next post...")
             time.sleep(wait_time)
     
     print(f"\n{'='*50}")
