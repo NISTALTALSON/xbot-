@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Multi-Platform News Bot - Bluesky + Telegram + Mastodon
-Comprehensive AI, Cybersecurity, Business, Tech, Finance news from 70+ sources
-Posts every 2 hours - 100% Free Forever
+Multi-Platform News Bot with Images - HUMANIZED VERSION
+Natural, engaging posts that don't feel like bot spam
+Bluesky + Telegram + Mastodon - Posts every hour
 """
 
 import os
@@ -13,6 +13,9 @@ import random
 import hashlib
 import json
 import requests
+from bs4 import BeautifulSoup
+from io import BytesIO
+from urllib.parse import urljoin
 
 # COMPREHENSIVE RSS FEEDS - 70+ sources across 11 categories
 RSS_FEEDS = {
@@ -119,6 +122,135 @@ RSS_FEEDS = {
     ]
 }
 
+# HUMAN-LIKE INTRO PHRASES
+INTROS = {
+    'artificial_intelligence': [
+        "Just spotted this:",
+        "Interesting AI development:",
+        "Worth a look:",
+        "This caught my attention:",
+        "AI news:",
+        "New in ML:",
+        "Check this out:",
+        "🔥",
+        "👀",
+    ],
+    
+    'cybersecurity': [
+        "Security alert:",
+        "Heads up:",
+        "🚨",
+        "New threat:",
+        "This is concerning:",
+        "FYI:",
+        "Security update:",
+        "Just saw this:",
+        "⚠️",
+    ],
+    
+    'ethical_hacking': [
+        "New technique:",
+        "Interesting find:",
+        "Security researchers found:",
+        "Worth knowing:",
+        "🔓",
+        "New exploit:",
+        "Just dropped:",
+    ],
+    
+    'data_breaches': [
+        "🚨 Breach alert:",
+        "Data leak:",
+        "This is bad:",
+        "Major breach:",
+        "Compromised:",
+        "⚠️ Alert:",
+        "Security incident:",
+    ],
+    
+    'business_tech': [
+        "Tech news:",
+        "Interesting:",
+        "Just announced:",
+        "Big move:",
+        "Industry update:",
+        "Worth reading:",
+        "📰",
+    ],
+    
+    'stocks_finance': [
+        "Market update:",
+        "📊",
+        "Finance news:",
+        "Worth watching:",
+        "Market moving:",
+        "Investment alert:",
+        "💰",
+    ],
+    
+    'crypto_blockchain': [
+        "Crypto update:",
+        "Web3 news:",
+        "🚀",
+        "Blockchain development:",
+        "Crypto markets:",
+        "DeFi update:",
+        "💎",
+    ],
+    
+    'cloud_devops': [
+        "Cloud update:",
+        "New from AWS/Azure/GCP:",
+        "DevOps news:",
+        "Infrastructure update:",
+        "☁️",
+        "Just released:",
+    ],
+    
+    'software_dev': [
+        "Dev news:",
+        "For developers:",
+        "Code update:",
+        "Programming:",
+        "💻",
+        "New release:",
+        "Tech update:",
+    ],
+    
+    'startups_vc': [
+        "Startup news:",
+        "💡",
+        "Funding alert:",
+        "Entrepreneurship:",
+        "New venture:",
+        "Startup update:",
+        "🚀",
+    ],
+    
+    'science_research': [
+        "Research:",
+        "New study:",
+        "Science update:",
+        "🔬",
+        "Interesting research:",
+        "Study shows:",
+    ]
+}
+
+# CASUAL COMMENTS (randomly added sometimes)
+CASUAL_COMMENTS = [
+    "Thoughts?",
+    "What do you think?",
+    "Interesting times.",
+    "This is huge.",
+    "Wild.",
+    "Big if true.",
+    "Worth a read.",
+    "This matters.",
+    "Keep an eye on this.",
+    "Game changer?",
+]
+
 POSTED_FILE = "posted_items.json"
 
 def load_posted_items():
@@ -144,6 +276,76 @@ def get_item_id(entry):
     unique_string = entry.get('link', '') + entry.get('title', '')
     return hashlib.md5(unique_string.encode()).hexdigest()
 
+def extract_image_from_entry(entry):
+    """Extract image URL from RSS entry"""
+    if 'media_content' in entry and entry.media_content:
+        return entry.media_content[0].get('url')
+    
+    if 'media_thumbnail' in entry and entry.media_thumbnail:
+        return entry.media_thumbnail[0].get('url')
+    
+    if 'enclosures' in entry and entry.enclosures:
+        for enc in entry.enclosures:
+            if enc.get('type', '').startswith('image/'):
+                return enc.get('href')
+    
+    content = entry.get('content', [{}])[0].get('value', '') or entry.get('summary', '')
+    if content and '<img' in content:
+        try:
+            soup = BeautifulSoup(content, 'html.parser')
+            img = soup.find('img')
+            if img and img.get('src'):
+                return img['src']
+        except:
+            pass
+    
+    return None
+
+def fetch_og_image(url):
+    """Fetch Open Graph image from article URL"""
+    try:
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
+        
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        
+        og_image = soup.find('meta', property='og:image')
+        if og_image and og_image.get('content'):
+            return urljoin(url, og_image['content'])
+        
+        twitter_image = soup.find('meta', attrs={'name': 'twitter:image'})
+        if twitter_image and twitter_image.get('content'):
+            return urljoin(url, twitter_image['content'])
+        
+        img = soup.find('img')
+        if img and img.get('src'):
+            img_url = img['src']
+            if not img_url.startswith('data:') and len(img_url) > 10:
+                return urljoin(url, img_url)
+    except:
+        pass
+    
+    return None
+
+def download_image(image_url):
+    """Download image and return bytes"""
+    try:
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        resp = requests.get(image_url, headers=headers, timeout=15)
+        resp.raise_for_status()
+        
+        content_type = resp.headers.get('content-type', '')
+        if 'image' not in content_type.lower():
+            return None
+        
+        if len(resp.content) > 5 * 1024 * 1024:
+            return None
+        
+        return resp.content
+    except:
+        return None
+
 def fetch_news():
     """Fetch news from ALL RSS feeds"""
     all_entries = []
@@ -158,12 +360,15 @@ def fetch_news():
                 feed = feedparser.parse(feed_url)
                 
                 for entry in feed.entries[:5]:
+                    image_url = extract_image_from_entry(entry)
+                    
                     all_entries.append({
                         'title': entry.get('title', 'No title'),
                         'link': entry.get('link', ''),
                         'published': entry.get('published', ''),
                         'source': feed.feed.get('title', 'Unknown'),
                         'category': category,
+                        'image_url': image_url,
                         'id': get_item_id(entry)
                     })
             except Exception as e:
@@ -173,34 +378,83 @@ def fetch_news():
     return all_entries
 
 def get_hashtags(category):
-    """Get smart hashtags based on category"""
+    """Get hashtags for category"""
     hashtag_map = {
-        'artificial_intelligence': "#AI #MachineLearning #DeepLearning",
-        'cybersecurity': "#CyberSecurity #InfoSec #Hacking",
-        'ethical_hacking': "#EthicalHacking #PenTesting #InfoSec",
-        'data_breaches': "#DataBreach #Privacy #Security",
-        'business_tech': "#TechNews #Business #Innovation",
-        'stocks_finance': "#Stocks #Finance #Markets #Investing",
-        'crypto_blockchain': "#Crypto #Blockchain #Web3",
-        'cloud_devops': "#Cloud #DevOps #AWS #Kubernetes",
-        'software_dev': "#Programming #Development #Coding",
-        'startups_vc': "#Startups #Entrepreneurship #VC",
-        'science_research': "#Science #Research #Technology"
+        'artificial_intelligence': "#AI #MachineLearning",
+        'cybersecurity': "#CyberSecurity #InfoSec",
+        'ethical_hacking': "#Hacking #Security",
+        'data_breaches': "#DataBreach #Privacy",
+        'business_tech': "#Tech #Business",
+        'stocks_finance': "#Finance #Markets",
+        'crypto_blockchain': "#Crypto #Web3",
+        'cloud_devops': "#Cloud #DevOps",
+        'software_dev': "#Programming #Dev",
+        'startups_vc': "#Startups",
+        'science_research': "#Science #Research"
     }
-    return hashtag_map.get(category, "#Tech #News")
+    return hashtag_map.get(category, "#Tech")
 
-def format_post(entry, char_limit=300):
-    """Format entry into a post"""
+def humanize_post(entry):
+    """Create a natural, human-sounding post"""
+    category = entry['category']
     title = entry['title']
     link = entry['link']
-    hashtags = "\n\n" + get_hashtags(entry['category'])
     
-    max_title_length = char_limit - len(link) - len(hashtags) - 5
+    # Clean up title (remove site names, extra punctuation)
+    title = title.replace('...', '').strip()
+    if ' - ' in title:
+        title = title.split(' - ')[0].strip()
+    if ' | ' in title:
+        title = title.split(' | ')[0].strip()
     
-    if len(title) > max_title_length:
-        title = title[:max_title_length-3] + "..."
+    # Get random intro
+    intros = INTROS.get(category, ["Check this out:"])
+    intro = random.choice(intros)
     
-    return f"{title}\n\n{link}{hashtags}"
+    # Decide if we add a casual comment (30% chance)
+    add_comment = random.random() < 0.3
+    comment = random.choice(CASUAL_COMMENTS) if add_comment else ""
+    
+    # Get hashtags
+    hashtags = get_hashtags(category)
+    
+    # Build post in different styles
+    style = random.randint(1, 4)
+    
+    if style == 1:
+        # Style 1: Intro + Title + Link + Comment + Hashtags
+        post = f"{intro} {title}\n\n{link}"
+        if comment:
+            post += f"\n\n{comment}"
+        post += f"\n\n{hashtags}"
+    
+    elif style == 2:
+        # Style 2: Just emoji intro + Title + Link + Hashtags (cleaner)
+        if intro in ['🔥', '👀', '🚨', '⚠️', '📰', '📊', '💰', '🚀', '💎', '☁️', '💻', '💡', '🔬', '🔓']:
+            post = f"{intro} {title}\n\n{link}\n\n{hashtags}"
+        else:
+            post = f"{title}\n\n{link}\n\n{hashtags}"
+    
+    elif style == 3:
+        # Style 3: Title + Link + Comment/Hashtags
+        post = f"{title}\n\n{link}"
+        if comment:
+            post += f"\n\n{comment} {hashtags}"
+        else:
+            post += f"\n\n{hashtags}"
+    
+    else:
+        # Style 4: Casual intro + Title only + Link below
+        post = f"{intro}\n\n{title}\n\n{link}\n\n{hashtags}"
+    
+    # Ensure it fits (300 chars for Bluesky/Mastodon)
+    if len(post) > 300:
+        # Shorten title
+        max_title = 300 - len(intro) - len(link) - len(hashtags) - (len(comment) if comment else 0) - 10
+        title_short = title[:max_title] + "..."
+        post = f"{intro} {title_short}\n\n{link}\n\n{hashtags}"
+    
+    return post
 
 # ==================== BLUESKY ====================
 
@@ -217,60 +471,110 @@ def create_bluesky_session(handle, app_password):
         print(f"Bluesky auth error: {e}")
         return None
 
-def post_to_bluesky(text, session):
+def upload_image_to_bluesky(image_bytes, session):
+    """Upload image to Bluesky"""
+    try:
+        resp = requests.post(
+            "https://bsky.social/xrpc/com.atproto.repo.uploadBlob",
+            headers={
+                "Authorization": f"Bearer {session['accessJwt']}",
+                "Content-Type": "image/jpeg"
+            },
+            data=image_bytes
+        )
+        resp.raise_for_status()
+        return resp.json()['blob']
+    except:
+        return None
+
+def post_to_bluesky(text, session, image_bytes=None):
     """Post to Bluesky"""
     try:
+        record = {
+            "$type": "app.bsky.feed.post",
+            "text": text,
+            "createdAt": datetime.utcnow().isoformat() + "Z"
+        }
+        
+        if image_bytes:
+            blob = upload_image_to_bluesky(image_bytes, session)
+            if blob:
+                record["embed"] = {
+                    "$type": "app.bsky.embed.images",
+                    "images": [{"alt": "Article image", "image": blob}]
+                }
+        
         resp = requests.post(
             "https://bsky.social/xrpc/com.atproto.repo.createRecord",
             headers={"Authorization": f"Bearer {session['accessJwt']}"},
             json={
                 "repo": session["did"],
                 "collection": "app.bsky.feed.post",
-                "record": {
-                    "$type": "app.bsky.feed.post",
-                    "text": text,
-                    "createdAt": datetime.utcnow().isoformat() + "Z"
-                }
+                "record": record
             }
         )
         resp.raise_for_status()
         return True
     except Exception as e:
-        print(f"Bluesky post error: {e}")
+        print(f"Bluesky error: {e}")
         return False
 
 # ==================== TELEGRAM ====================
 
-def post_to_telegram(text, bot_token, channel_id):
+def post_to_telegram(text, bot_token, channel_id, image_bytes=None):
     """Post to Telegram"""
     try:
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        resp = requests.post(url, json={
-            "chat_id": channel_id,
-            "text": text,
-            "disable_web_page_preview": False
-        })
+        base_url = f"https://api.telegram.org/bot{bot_token}"
+        
+        if image_bytes:
+            files = {'photo': BytesIO(image_bytes)}
+            data = {'chat_id': channel_id, 'caption': text}
+            resp = requests.post(f"{base_url}/sendPhoto", data=data, files=files)
+        else:
+            resp = requests.post(f"{base_url}/sendMessage", json={
+                "chat_id": channel_id,
+                "text": text,
+                "disable_web_page_preview": False
+            })
+        
         resp.raise_for_status()
         return True
     except Exception as e:
-        print(f"Telegram post error: {e}")
+        print(f"Telegram error: {e}")
         return False
 
 # ==================== MASTODON ====================
 
-def post_to_mastodon(text, access_token, instance="mastodon.social"):
+def upload_image_to_mastodon(image_bytes, access_token, instance="mastodon.social"):
+    """Upload image to Mastodon"""
+    try:
+        url = f"https://{instance}/api/v2/media"
+        files = {'file': BytesIO(image_bytes)}
+        headers = {"Authorization": f"Bearer {access_token}"}
+        
+        resp = requests.post(url, headers=headers, files=files)
+        resp.raise_for_status()
+        return resp.json()['id']
+    except:
+        return None
+
+def post_to_mastodon(text, access_token, instance="mastodon.social", image_bytes=None):
     """Post to Mastodon"""
     try:
         url = f"https://{instance}/api/v1/statuses"
-        resp = requests.post(
-            url,
-            headers={"Authorization": f"Bearer {access_token}"},
-            json={"status": text}
-        )
+        headers = {"Authorization": f"Bearer {access_token}"}
+        data = {"status": text}
+        
+        if image_bytes:
+            media_id = upload_image_to_mastodon(image_bytes, access_token, instance)
+            if media_id:
+                data["media_ids"] = [media_id]
+        
+        resp = requests.post(url, headers=headers, json=data)
         resp.raise_for_status()
         return True
     except Exception as e:
-        print(f"Mastodon post error: {e}")
+        print(f"Mastodon error: {e}")
         return False
 
 # ==================== MAIN ====================
@@ -278,7 +582,7 @@ def post_to_mastodon(text, access_token, instance="mastodon.social"):
 def main():
     """Main bot logic"""
     print(f"\n{'='*70}")
-    print(f"🤖 Multi-Platform News Bot")
+    print(f"🤖 Humanized Multi-Platform News Bot")
     print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*70}\n")
     
@@ -289,7 +593,6 @@ def main():
     telegram_channel = os.environ.get('TELEGRAM_CHANNEL_ID')
     mastodon_token = os.environ.get('MASTODON_ACCESS_TOKEN')
     
-    # Check credentials
     platforms = []
     if bluesky_handle and bluesky_password:
         platforms.append('Bluesky')
@@ -299,20 +602,18 @@ def main():
         platforms.append('Mastodon')
     
     if not platforms:
-        print("❌ No platform credentials found!")
+        print("❌ No credentials")
         return
     
-    print(f"📱 Active platforms: {', '.join(platforms)}\n")
+    print(f"📱 Platforms: {', '.join(platforms)}\n")
     
-    # Authenticate Bluesky
+    # Auth Bluesky
     bluesky_session = None
     if 'Bluesky' in platforms:
-        print("🔐 Authenticating Bluesky...")
         bluesky_session = create_bluesky_session(bluesky_handle, bluesky_password)
         if bluesky_session:
             print("✅ Bluesky ready")
         else:
-            print("❌ Bluesky failed")
             platforms.remove('Bluesky')
     
     if 'Telegram' in platforms:
@@ -320,74 +621,74 @@ def main():
     if 'Mastodon' in platforms:
         print("✅ Mastodon ready")
     
-    print(f"\n📰 Fetching from {sum(len(f) for f in RSS_FEEDS.values())} feeds...\n")
+    print(f"\n📰 Fetching news...\n")
     
-    # Fetch news
     entries = fetch_news()
-    print(f"\n📊 Total entries: {len(entries)}")
+    print(f"\n📊 Total: {len(entries)}")
     
     if not entries:
-        print("⚠ No entries found")
         return
     
-    # Filter new entries
     posted_items = load_posted_items()
     new_entries = [e for e in entries if e['id'] not in posted_items]
-    print(f"✨ New entries: {len(new_entries)}\n")
+    print(f"✨ New: {len(new_entries)}\n")
     
     if not new_entries:
-        print("ℹ️ No new content to post")
+        print("ℹ️ No new content")
         return
     
-    # Select posts
     random.shuffle(new_entries)
     num_posts = random.randint(4, 6)
     to_post = new_entries[:num_posts]
     
-    print(f"🎯 Posting {len(to_post)} items\n")
-    print(f"{'='*70}\n")
+    print(f"🎯 Posting {len(to_post)} items\n{'='*70}\n")
     
-    # Post to all platforms
     for i, entry in enumerate(to_post, 1):
-        print(f"📤 [{i}/{len(to_post)}]")
-        print(f"   📁 {entry['category'].replace('_', ' ').title()}")
-        print(f"   📰 {entry['title'][:65]}...")
-        print(f"   🔗 {entry['source']}")
+        print(f"📤 [{i}/{len(to_post)}] {entry['title'][:50]}...")
         
-        post_text = format_post(entry)
+        # Get image
+        image_bytes = None
+        image_url = entry.get('image_url')
+        
+        if not image_url:
+            image_url = fetch_og_image(entry['link'])
+        
+        if image_url:
+            image_bytes = download_image(image_url)
+            if image_bytes:
+                print(f"   🖼️  Image: {len(image_bytes)//1024}KB")
+        
+        # Create humanized post
+        post_text = humanize_post(entry)
         successes = []
         
-        # Post to each platform
+        # Post
         if bluesky_session:
-            if post_to_bluesky(post_text, bluesky_session):
+            if post_to_bluesky(post_text, bluesky_session, image_bytes):
                 successes.append('Bluesky')
         
         if 'Telegram' in platforms:
-            if post_to_telegram(post_text, telegram_token, telegram_channel):
+            if post_to_telegram(post_text, telegram_token, telegram_channel, image_bytes):
                 successes.append('Telegram')
         
         if 'Mastodon' in platforms:
-            if post_to_mastodon(post_text, mastodon_token):
+            if post_to_mastodon(post_text, mastodon_token, "mastodon.social", image_bytes):
                 successes.append('Mastodon')
         
         if successes:
             save_posted_item(entry['id'])
-            print(f"   ✅ Posted to: {', '.join(successes)}")
+            print(f"   ✅ {', '.join(successes)}")
         else:
-            print(f"   ❌ Failed all platforms")
+            print(f"   ❌ Failed")
         
-        # Wait between posts
         if i < len(to_post):
             wait = random.randint(15, 25)
-            print(f"   ⏳ Waiting {wait}s...\n")
+            print(f"   ⏳ {wait}s...\n")
             time.sleep(wait)
         else:
             print()
     
-    print(f"{'='*70}")
-    print(f"✅ Session complete!")
-    print(f"⏰ Next run in 2 hours")
-    print(f"{'='*70}\n")
+    print(f"{'='*70}\n✅ Done! Next run in 1 hour\n{'='*70}\n")
 
 if __name__ == "__main__":
     main()
