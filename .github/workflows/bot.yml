@@ -31,14 +31,4 @@ jobs:
         X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
       run: python bot.py
       
-    - name: Commit posted items tracking
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add posted_items.json
-        git diff --quiet && git diff --staged --quiet || git commit -m "Update posted items [skip ci]"
-        
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+   
