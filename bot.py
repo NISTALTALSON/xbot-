@@ -41,6 +41,7 @@ def save_posted_item(item_id):
     """Save posted item ID to avoid duplicates"""
     posted = load_posted_items()
     posted.append(item_id)
+    # Keep only last 500 items to prevent file from growing too large
     posted = posted[-500:]
     with open(POSTED_FILE, 'w') as f:
         json.dump(posted, f)
@@ -58,7 +59,7 @@ def fetch_news():
         try:
             print(f"Fetching from: {feed_url}")
             feed = feedparser.parse(feed_url)
-            for entry in feed.entries[:5]:
+            for entry in feed.entries[:5]:  # Get top 5 from each feed
                 all_entries.append({
                     'title': entry.get('title', 'No title'),
                     'link': entry.get('link', ''),
@@ -76,13 +77,18 @@ def format_post(entry):
     """Format entry into a Bluesky post (300 char limit)"""
     title = entry['title']
     link = entry['link']
+    
+    # Add relevant hashtags
     hashtags = "\n\n#AI #CyberSecurity #InfoSec"
-    max_title_length = 300 - len(link) - len(hashtags) - 3
+    
+    # Calculate available space
+    max_title_length = 300 - len(link) - len(hashtags) - 3  # -3 for spacing
     
     if len(title) > max_title_length:
         title = title[:max_title_length-3] + "..."
     
     post = f"{title}\n\n{link}{hashtags}"
+    
     return post
 
 def create_bluesky_session(handle, app_password):
@@ -90,10 +96,14 @@ def create_bluesky_session(handle, app_password):
     try:
         resp = requests.post(
             "https://bsky.social/xrpc/com.atproto.server.createSession",
-            json={"identifier": handle, "password": app_password}
+            json={
+                "identifier": handle,
+                "password": app_password
+            }
         )
         resp.raise_for_status()
-        return resp.json()
+        session = resp.json()
+        return session
     except Exception as e:
         print(f"Error creating session: {e}")
         return None
@@ -101,9 +111,12 @@ def create_bluesky_session(handle, app_password):
 def post_to_bluesky(post_text, session):
     """Post to Bluesky"""
     try:
+        # Create the post
         resp = requests.post(
             "https://bsky.social/xrpc/com.atproto.repo.createRecord",
-            headers={"Authorization": f"Bearer {session['accessJwt']}"},
+            headers={
+                "Authorization": f"Bearer {session['accessJwt']}"
+            },
             json={
                 "repo": session["did"],
                 "collection": "app.bsky.feed.post",
@@ -117,6 +130,7 @@ def post_to_bluesky(post_text, session):
         resp.raise_for_status()
         print(f"✓ Post published successfully!")
         return True
+        
     except Exception as e:
         print(f"✗ Error posting: {e}")
         return False
@@ -127,6 +141,7 @@ def main():
     print(f"Bluesky News Bot - Starting at {datetime.now()}")
     print(f"{'='*50}\n")
     
+    # Get credentials from environment variables
     handle = os.environ.get('BLUESKY_HANDLE')
     app_password = os.environ.get('BLUESKY_APP_PASSWORD')
     
@@ -134,6 +149,7 @@ def main():
         print("ERROR: Missing Bluesky credentials!")
         return
     
+    # Create Bluesky session
     print("Authenticating with Bluesky...")
     session = create_bluesky_session(handle, app_password)
     
@@ -143,6 +159,7 @@ def main():
     
     print("✓ Authentication successful!\n")
     
+    # Fetch news
     print("Fetching news from RSS feeds...")
     entries = fetch_news()
     print(f"Found {len(entries)} total entries\n")
@@ -151,7 +168,10 @@ def main():
         print("No entries found. Exiting.")
         return
     
+    # Load previously posted items
     posted_items = load_posted_items()
+    
+    # Filter out already posted items
     new_entries = [e for e in entries if e['id'] not in posted_items]
     print(f"Found {len(new_entries)} new entries\n")
     
@@ -159,9 +179,11 @@ def main():
         print("No new entries to post. Exiting.")
         return
     
+    # Shuffle and pick random entries to post (2-3 posts per run)
     random.shuffle(new_entries)
     to_post = new_entries[:random.randint(2, 3)]
     
+    # Post to Bluesky
     for i, entry in enumerate(to_post, 1):
         print(f"\n[{i}/{len(to_post)}] Posting:")
         print(f"  Title: {entry['title'][:60]}...")
@@ -175,6 +197,7 @@ def main():
         else:
             print("  Status: ✗ Failed to post")
         
+        # Rate limiting: wait between posts
         if i < len(to_post):
             wait_time = random.randint(10, 20)
             print(f"  Waiting {wait_time}s before next post...")
