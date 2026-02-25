@@ -62,7 +62,7 @@ Automatically posts AI and cybersecurity news to your X (Twitter) account every 
 3. Watch it run in real-time
 4. Check your X account for new posts!
 
-## Schedule
+## Scheduling
 
 The bot runs at:
 - 12:00 AM UTC (6:00 PM EST)
