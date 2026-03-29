@@ -950,7 +950,9 @@ def build_post_text(entry: dict, summary: str) -> str:
 
     if budget < 20:
         # Title alone is almost at limit — skip body, just title + footer
-        post = f"{emoji} {truncate_to_graphemes(title, BSKY_MAX_GRAPHEMES - count_graphemes(f'\n{footer}') - 4)}\n{footer.strip()}"
+        newline_footer = "\n" + footer
+        title_limit = BSKY_MAX_GRAPHEMES - count_graphemes(newline_footer) - 4
+        post = f"{emoji} {truncate_to_graphemes(title, title_limit)}\n{footer.strip()}"
     else:
         body = summary if summary else ""
         body = truncate_to_graphemes(body, budget)
