@@ -1,9 +1,4 @@
 [
-  "Inference costs are the hidden bottleneck everyone ignores.",
-  "The benchmark numbers are impressive but real-world deployment is always the real test.",
-  "The real story is in the executive departures footnote.",
-  "Open weights vs closed \u2014 that debate is not going away.",
-  "Feature flags should be in every deployment pipeline by now.",
   "Workforce reduction announcements always spike hiring for competitors.",
   "Platform lock-in is back as a strategy. Deliberately.",
   "Workforce reduction announcements always spike hiring for competitors.",
@@ -98,5 +93,10 @@
   "The reorg flattened management. The decision velocity got worse.",
   "The board composition changed before the pivot announcement.",
   "The real story is always in the executive departures footnote.",
-  "Distribution is the moat nobody talks about enough."
+  "Distribution is the moat nobody talks about enough.",
+  "API-first businesses have better gross margins than they look like they should.",
+  "The market is pricing in a lot of optimism here.",
+  "Freemium conversion rates determine whether the unit economics work.",
+  "The attack path requires user interaction but that bar is low.",
+  "Model collapse in long-term agentic tasks is still an open problem."
 ]
