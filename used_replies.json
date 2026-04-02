@@ -1,9 +1,4 @@
 [
-  "Freemium conversion rates determine whether the unit economics work.",
-  "Platform lock-in is back as a deliberate strategy.",
-  "GitOps consistency breaks down at the operator level more than the controller level.",
-  "Workforce reduction announcements always spike hiring at competitors.",
-  "Category creation is an expensive marketing strategy that rarely works.",
   "Distribution is the moat nobody talks about enough.",
   "The real story is always in the executive departures footnote.",
   "Vertical SaaS multiples are compressing across the board.",
@@ -98,5 +93,10 @@
   "Distribution is the moat nobody talks about enough.",
   "Margins under pressure across the whole sector right now.",
   "Distribution is the moat nobody talks about enough.",
-  "Annual contract value is a vanity metric without net revenue retention."
+  "Annual contract value is a vanity metric without net revenue retention.",
+  "Benchmark numbers are impressive but deployment is the real test.",
+  "The hallucination rate on domain-specific queries needs its own benchmark.",
+  "Quantization trade-offs at this model size are worth examining.",
+  "The reproducibility question will follow this paper.",
+  "Fine-tuning behavior at scale is still an unsolved problem."
 ]
