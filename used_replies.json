@@ -1,9 +1,4 @@
 [
-  "Benchmark numbers are impressive but deployment is the real test.",
-  "The hallucination rate on domain-specific queries needs its own benchmark.",
-  "Quantization trade-offs at this model size are worth examining.",
-  "The reproducibility question will follow this paper.",
-  "Fine-tuning behavior at scale is still an unsolved problem.",
   "Pre-seed is now doing what seed used to do. Seed is the new Series A.",
   "Platform lock-in is back as a deliberate strategy.",
   "The product announcement is more interesting than the revenue numbers.",
@@ -98,5 +93,10 @@
   "The layoff announcement came after the retention bonuses paid out.",
   "Annual contract value is a vanity metric without net revenue retention.",
   "The layoff announcement came after the retention bonuses paid out.",
-  "Bug bounty programs need to pay better for this severity class."
+  "Bug bounty programs need to pay better for this severity class.",
+  "Data sovereignty requirements are creating genuine infrastructure fragmentation.",
+  "The privacy policy changed 30 days before the product launch.",
+  "Behavioral advertising surveillance infrastructure is the real story here.",
+  "Ad tech ecosystem complexity is deliberately designed to obscure accountability.",
+  "Data broker ecosystem makes this breach scope much larger than reported."
 ]
