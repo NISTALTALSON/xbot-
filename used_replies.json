@@ -1,9 +1,4 @@
 [
-  "The strategy deck and the product roadmap are still not the same document.",
-  "Two maintainers, 50 million weekly downloads, zero dedicated funding.",
-  "Slippage tolerance misconfiguration is an underappreciated attack vector.",
-  "Software foundations are the slow path but the durable one.",
-  "The product is fine. The go-to-market is where it falls apart.",
   "Regulatory pressure is reshaping product roadmaps in real time.",
   "Enterprise deals at this size take 18 months to close and 6 months to implement.",
   "The reorg flattened management. The decision velocity got worse.",
@@ -98,5 +93,10 @@
   "The reference customer list in the press release is doing a lot of work.",
   "Workforce reduction announcements always spike hiring at competitors.",
   "The exploit was front-run in the mempool. MEV searchers caught it first.",
-  "Training compute keeps scaling but inference costs matter more at volume."
+  "Training compute keeps scaling but inference costs matter more at volume.",
+  "Freemium conversion rates determine whether the unit economics work.",
+  "The market is pricing in a lot of optimism here.",
+  "The acqui-hire price tells you exactly what the acquirer valued.",
+  "Consolidation was inevitable. Watch who absorbs what next.",
+  "Feature flags should be in every deployment pipeline by now."
 ]
