@@ -1,9 +1,4 @@
 [
-  "Distribution is the moat nobody talks about enough.",
-  "Retrieval augmentation doesn't fix the knowledge cutoff problem cleanly.",
-  "Platform lock-in is back as a deliberate strategy.",
-  "Enterprise sales cycles are longer than most runways.",
-  "The product announcement is more interesting than the revenue numbers.",
   "International expansion announcements are usually about regulatory arbitrage.",
   "The acqui-hire price tells you exactly what the acquirer valued.",
   "The market is pricing in a lot of optimism here.",
@@ -98,5 +93,10 @@
   "Inference costs are the hidden bottleneck everyone ignores.",
   "The reorg flattened management. The decision velocity got worse.",
   "Attack surface just got wider.",
-  "The eval methodology here is more interesting than the headline result."
+  "The eval methodology here is more interesting than the headline result.",
+  "The strategy deck and the product roadmap are still not the same document.",
+  "Vertical SaaS multiples are compressing across the board.",
+  "Enterprise deals at this size take 18 months to close and 6 months to implement.",
+  "Bayesian vs frequentist framing would change the interpretation here.",
+  "Translation from lab results to real-world application is where most die."
 ]
