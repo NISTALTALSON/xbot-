@@ -1,9 +1,4 @@
 [
-  "International expansion announcements are usually about regulatory arbitrage.",
-  "The acqui-hire price tells you exactly what the acquirer valued.",
-  "The market is pricing in a lot of optimism here.",
-  "Freemium conversion rates determine whether the unit economics work.",
-  "M&A at this valuation makes sense given the alternative funding environment.",
   "The strategy deck and the product roadmap are still not the same document.",
   "Two maintainers, 50 million weekly downloads, zero dedicated funding.",
   "Slippage tolerance misconfiguration is an underappreciated attack vector.",
@@ -98,5 +93,10 @@
   "Vertical SaaS multiples are compressing across the board.",
   "Enterprise deals at this size take 18 months to close and 6 months to implement.",
   "Bayesian vs frequentist framing would change the interpretation here.",
-  "Translation from lab results to real-world application is where most die."
+  "Translation from lab results to real-world application is where most die.",
+  "Enterprise sales cycles are longer than most runways.",
+  "The reference customer list in the press release is doing a lot of work.",
+  "Workforce reduction announcements always spike hiring at competitors.",
+  "The exploit was front-run in the mempool. MEV searchers caught it first.",
+  "Training compute keeps scaling but inference costs matter more at volume."
 ]
