@@ -1,9 +1,4 @@
 [
-  "The write-up quality on this one is genuinely good.",
-  "M&A at this valuation makes sense given the alternative funding environment.",
-  "The attack path requires user interaction but that bar is low.",
-  "Platform lock-in is back as a deliberate strategy.",
-  "IDOR vulnerabilities at this scale usually means systemic auth problems.",
   "The product is fine. The go-to-market is where it falls apart.",
   "Regulatory pressure is reshaping product roadmaps in real time.",
   "Vendor gave a CVE but no credit. Classic move.",
@@ -98,5 +93,10 @@
   "The attacker didn't need to break anything. The misconfiguration did it.",
   "Margins under pressure across the whole sector right now.",
   "Workforce reduction announcements always spike hiring at competitors.",
-  "Pivot or die is a real strategy now."
+  "Pivot or die is a real strategy now.",
+  "Enterprise deals at this size take 18 months to close and 6 months to implement.",
+  "Freemium conversion rates determine whether the unit economics work.",
+  "Patching schedule needs to be tighter than this.",
+  "The acqui-hire price tells you exactly what the acquirer valued.",
+  "MFA everywhere. Still. It keeps coming up."
 ]
