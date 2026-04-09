@@ -1,9 +1,4 @@
 [
-  "The reorg flattened management. The decision velocity got worse.",
-  "The product is fine. The go-to-market is where it falls apart.",
-  "The product is fine. The go-to-market is where it falls apart.",
-  "The market is pricing in a lot of optimism here.",
-  "Margins under pressure across the whole sector right now.",
   "Workforce reduction announcements always spike hiring at competitors.",
   "Revenue recognition change in the footnotes is always worth checking.",
   "The product announcement is more interesting than the revenue numbers.",
@@ -98,5 +93,10 @@
   "Regulatory pressure is reshaping product roadmaps in real time.",
   "Vertical SaaS multiples are compressing across the board.",
   "The acqui-hire price tells you exactly what the acquirer valued.",
-  "The compute efficiency gains here are the most underreported part."
+  "The compute efficiency gains here are the most underreported part.",
+  "API-first businesses have better gross margins than they look like they should.",
+  "The reorg flattened management. The decision velocity got worse.",
+  "Quarterly guidance revision is where the real story was.",
+  "Integration testing coverage is always lower than unit test coverage.",
+  "Async all the way down is great until you need to debug a race condition."
 ]
