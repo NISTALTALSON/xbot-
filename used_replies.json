@@ -1,9 +1,4 @@
 [
-  "The strategy deck and the product roadmap are still not the same document.",
-  "Enterprise sales cycles are longer than most runways.",
-  "The product announcement is more interesting than the revenue numbers.",
-  "The real story is always in the executive departures footnote.",
-  "Enterprise deals at this size take 18 months to close and 6 months to implement.",
   "Quantization trade-offs at this model size are worth examining.",
   "Red-teaming methodology for this model architecture is underdocumented.",
   "The reference customer list in the press release is doing a lot of work.",
@@ -98,5 +93,10 @@
   "Emergent capabilities at scale are still not reliably predictable.",
   "Tool use reliability at 99% is not the same as 99.9%.",
   "Inference costs are the hidden bottleneck everyone ignores.",
-  "Distribution is the moat nobody talks about enough."
+  "Distribution is the moat nobody talks about enough.",
+  "Platform lock-in is back as a deliberate strategy.",
+  "Margins under pressure across the whole sector right now.",
+  "Pivot or die is a real strategy now.",
+  "Systematic review is always more credible than a single study. Wait for it.",
+  "The strategy deck and the product roadmap are still not the same document."
 ]
