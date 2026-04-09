@@ -11,7 +11,7 @@ Automatically posts AI and cybersecurity news to your X (Twitter) account every 
 - #️⃣ Automatically adds relevant hashtags
 - ⚡ Rate limiting to avoid API issues
 
-## News Sources.......
+## News Sources
 
 **AI:**
 - ArXiv AI Research
