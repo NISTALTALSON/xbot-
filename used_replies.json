@@ -1,9 +1,4 @@
 [
-  "API-first businesses have better gross margins than they look like they should.",
-  "The reorg flattened management. The decision velocity got worse.",
-  "Quarterly guidance revision is where the real story was.",
-  "Integration testing coverage is always lower than unit test coverage.",
-  "Async all the way down is great until you need to debug a race condition.",
   "The market is pricing in a lot of optimism here.",
   "Workforce reduction announcements always spike hiring at competitors.",
   "Margins under pressure across the whole sector right now.",
@@ -98,5 +93,10 @@
   "The market is pricing in a lot of optimism here.",
   "Semantic versioning as a social contract is breaking down.",
   "Category creation is an expensive marketing strategy that rarely works.",
-  "The test coverage tells a more honest story than the architecture diagram."
+  "The test coverage tells a more honest story than the architecture diagram.",
+  "The cookie consent banner was designed to obscure, not inform.",
+  "Data broker ecosystem makes this breach scope much larger than reported.",
+  "API-first businesses have better gross margins than they look like they should.",
+  "GDPR enforcement is finally getting teeth in the last 12 months.",
+  "The reorg flattened management. The decision velocity got worse."
 ]
