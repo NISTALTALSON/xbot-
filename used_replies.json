@@ -1,9 +1,4 @@
 [
-  "The system prompt is doing more work than the model weights here.",
-  "Emergent capabilities at scale are still not reliably predictable.",
-  "Tool use reliability at 99% is not the same as 99.9%.",
-  "Inference costs are the hidden bottleneck everyone ignores.",
-  "Distribution is the moat nobody talks about enough.",
   "Platform lock-in is back as a deliberate strategy.",
   "Margins under pressure across the whole sector right now.",
   "Pivot or die is a real strategy now.",
@@ -98,5 +93,10 @@
   "The product is fine. The go-to-market is where it falls apart.",
   "The partnership announcement usually means one party ran out of runway.",
   "The second product needs the first product's distribution to have any chance.",
-  "The strategy deck and the product roadmap are still not the same document."
+  "The strategy deck and the product roadmap are still not the same document.",
+  "Community governance documentation is the last thing written and first thing needed.",
+  "License compatibility complexity is a real barrier to composability.",
+  "Security audit was funded externally. That gap existed for years.",
+  "Enterprise deals at this size take 18 months to close and 6 months to implement.",
+  "Bespoke enterprise forks without upstream contributions break the social contract."
 ]
