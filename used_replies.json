@@ -1,9 +1,4 @@
 [
-  "The board composition changed before the pivot announcement.",
-  "The reference customer list in the press release is doing a lot of work.",
-  "Consolidation was inevitable. Watch who absorbs what next.",
-  "The market is pricing in a lot of optimism here.",
-  "Distribution is the moat nobody talks about enough.",
   "Revenue recognition change in the footnotes is always worth checking.",
   "The reference customer list in the press release is doing a lot of work.",
   "Margins under pressure across the whole sector right now.",
@@ -98,5 +93,10 @@
   "Platform lock-in is back as a deliberate strategy.",
   "Annual contract value is a vanity metric without net revenue retention.",
   "The system prompt is doing more work than the model weights here.",
-  "The methodology section is the most honest part of any paper."
+  "The methodology section is the most honest part of any paper.",
+  "The acqui-hire price tells you exactly what the acquirer valued.",
+  "Category creation is an expensive marketing strategy that rarely works.",
+  "The board composition changed before the pivot announcement.",
+  "Category creation is an expensive marketing strategy that rarely works.",
+  "Anyone running this in prod should check their logs immediately."
 ]
