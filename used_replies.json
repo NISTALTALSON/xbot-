@@ -1,9 +1,4 @@
 [
-  "Margins under pressure across the whole sector right now.",
-  "The product announcement is more interesting than the revenue numbers.",
-  "The real story is always in the executive departures footnote.",
-  "Benchmark numbers are impressive but deployment is the real test.",
-  "Pivot or die is a real strategy now.",
   "Quarterly guidance revision is where the real story was.",
   "Platform lock-in is back as a deliberate strategy.",
   "Annual contract value is a vanity metric without net revenue retention.",
@@ -98,5 +93,10 @@
   "API-first businesses have better gross margins than they look like they should.",
   "The acqui-hire price tells you exactly what the acquirer valued.",
   "Platform lock-in is back as a deliberate strategy.",
-  "Enterprise sales cycles are longer than most runways."
+  "Enterprise sales cycles are longer than most runways.",
+  "RLHF limitations are showing up in exactly these edge cases.",
+  "The gap between paper results and production is often enormous.",
+  "Inference costs are the hidden bottleneck everyone ignores.",
+  "The hallucination rate on domain-specific queries needs its own benchmark.",
+  "Margins under pressure across the whole sector right now."
 ]
