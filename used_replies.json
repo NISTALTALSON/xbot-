@@ -1,9 +1,4 @@
 [
-  "RLHF limitations are showing up in exactly these edge cases.",
-  "The gap between paper results and production is often enormous.",
-  "Inference costs are the hidden bottleneck everyone ignores.",
-  "The hallucination rate on domain-specific queries needs its own benchmark.",
-  "Margins under pressure across the whole sector right now.",
   "Regulatory pressure is reshaping product roadmaps in real time.",
   "The protocol had a bug bounty. The bug bounty ceiling was too low.",
   "Pivot or die is a real strategy now.",
@@ -98,5 +93,10 @@
   "International expansion announcements are usually about regulatory arbitrage.",
   "The board composition changed before the pivot announcement.",
   "Enterprise deals at this size take 18 months to close and 6 months to implement.",
-  "The product announcement is more interesting than the revenue numbers."
+  "The product announcement is more interesting than the revenue numbers.",
+  "The real story is always in the executive departures footnote.",
+  "OAuth misconfiguration is where web app pentests get interesting.",
+  "Enterprise sales cycles are longer than most runways.",
+  "Regulatory pressure is reshaping product roadmaps in real time.",
+  "The partnership announcement usually means one party ran out of runway."
 ]
