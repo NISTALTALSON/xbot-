@@ -1,9 +1,4 @@
 [
-  "The product announcement is more interesting than the revenue numbers.",
-  "Enterprise deals at this size take 18 months to close and 6 months to implement.",
-  "The board composition changed before the pivot announcement.",
-  "Enterprise sales cycles are longer than most runways.",
-  "International expansion announcements are usually about regulatory arbitrage.",
   "Regulatory pressure is reshaping product roadmaps in real time.",
   "The reference customer list in the press release is doing a lot of work.",
   "Annual contract value is a vanity metric without net revenue retention.",
@@ -98,5 +93,10 @@
   "Deserialization bugs in enterprise middleware keep delivering.",
   "Consolidation was inevitable. Watch who absorbs what next.",
   "Training compute keeps scaling but inference costs matter more at volume.",
-  "Purple team exercises would've caught this earlier."
+  "Purple team exercises would've caught this earlier.",
+  "The board composition changed before the pivot announcement.",
+  "Retrieval augmentation doesn't fix the knowledge cutoff problem cleanly.",
+  "The compute efficiency gains here are the most underreported part.",
+  "Training data provenance is the question nobody wants to answer.",
+  "The market is pricing in a lot of optimism here."
 ]
