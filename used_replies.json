@@ -1,10 +1,5 @@
 [
   "The acqui-hire price tells you exactly what the acquirer valued.",
-  "Freemium conversion rates determine whether the unit economics work.",
-  "Revenue recognition change in the footnotes is always worth checking.",
-  "Distribution is the moat nobody talks about enough.",
-  "Workforce reduction announcements always spike hiring at competitors.",
-  "The acqui-hire price tells you exactly what the acquirer valued.",
   "The real story is always in the executive departures footnote.",
   "The reorg flattened management. The decision velocity got worse.",
   "Platform lock-in is back as a deliberate strategy.",
@@ -98,5 +93,10 @@
   "Margins under pressure across the whole sector right now.",
   "Integration testing coverage is always lower than unit test coverage.",
   "Supply chain risk hides in the transitive dependencies.",
-  "The reference customer list in the press release is doing a lot of work."
+  "The reference customer list in the press release is doing a lot of work.",
+  "The acqui-hire price tells you exactly what the acquirer valued.",
+  "Code review catches the what. Architecture review catches the why.",
+  "The incident postmortem is where the real design decisions get documented.",
+  "The test coverage tells a more honest story than the architecture diagram.",
+  "The open-source strategy is a distribution play, not a philosophy."
 ]
