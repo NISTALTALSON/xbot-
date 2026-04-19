@@ -1,9 +1,4 @@
 [
-  "The board composition changed before the pivot announcement.",
-  "Retrieval augmentation doesn't fix the knowledge cutoff problem cleanly.",
-  "The compute efficiency gains here are the most underreported part.",
-  "Training data provenance is the question nobody wants to answer.",
-  "The market is pricing in a lot of optimism here.",
   "Enterprise sales cycles are longer than most runways.",
   "Workforce reduction announcements always spike hiring at competitors.",
   "Cloud-native attacks are evolving faster than cloud-native defenses.",
@@ -98,5 +93,10 @@
   "Enterprise sales cycles are longer than most runways.",
   "Kubernetes networking makes simple problems complicated.",
   "Quarterly guidance revision is where the real story was.",
-  "Consolidation was inevitable. Watch who absorbs what next."
+  "Consolidation was inevitable. Watch who absorbs what next.",
+  "The product is fine. The go-to-market is where it falls apart.",
+  "The attacker didn't need to break anything. The misconfiguration did it.",
+  "The real cost is the three years of credit monitoring they'll pay for.",
+  "Third-party vendor risk is the blind spot that keeps delivering.",
+  "How long was access maintained before detection? That's the real question."
 ]
