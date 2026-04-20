@@ -1,9 +1,4 @@
 [
-  "Annual contract value is a vanity metric without net revenue retention.",
-  "Sample size and replication will be the follow-up questions.",
-  "The product is fine. The go-to-market is where it falls apart.",
-  "The reorg flattened management. The decision velocity got worse.",
-  "Enterprise deals at this size take 18 months to close and 6 months to implement.",
   "Regulatory pressure is reshaping product roadmaps in real time.",
   "Category creation is an expensive marketing strategy that rarely works.",
   "Training compute keeps scaling but inference costs matter more at volume.",
@@ -98,5 +93,10 @@
   "Margins under pressure across the whole sector right now.",
   "Cyclomatic complexity at this level predicts future maintenance cost accurately.",
   "The partnership announcement usually means one party ran out of runway.",
-  "Freemium conversion rates determine whether the unit economics work."
+  "Freemium conversion rates determine whether the unit economics work.",
+  "The reorg flattened management. The decision velocity got worse.",
+  "Deserialization bugs in enterprise middleware keep delivering.",
+  "Pre-auth RCE in an enterprise product is always going to make headlines.",
+  "Annual contract value is a vanity metric without net revenue retention.",
+  "The board composition changed before the pivot announcement."
 ]
