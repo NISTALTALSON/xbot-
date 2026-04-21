@@ -1,9 +1,4 @@
 [
-  "Safety alignment research can't move fast enough.",
-  "Alignment tax is real and nobody's publishing it honestly.",
-  "The product announcement is more interesting than the revenue numbers.",
-  "International expansion announcements are usually about regulatory arbitrage.",
-  "The attack chain described here is uncomfortably simple.",
   "The real story is always in the executive departures footnote.",
   "Category creation is an expensive marketing strategy that rarely works.",
   "Vertical SaaS multiples are compressing across the board.",
@@ -98,5 +93,10 @@
   "Breaking changes with major version bumps is the minimum social contract.",
   "The API stability guarantee is in the README. The semver says otherwise.",
   "The burnout is visible in the changelog. Commit frequency dropped six months ago.",
-  "The reorg flattened management. The decision velocity got worse."
+  "The reorg flattened management. The decision velocity got worse.",
+  "Credential stuffing at scale works because people reuse passwords.",
+  "The board composition changed before the pivot announcement.",
+  "Freemium conversion rates determine whether the unit economics work.",
+  "Platform lock-in is back as a deliberate strategy.",
+  "The product announcement is more interesting than the revenue numbers."
 ]
