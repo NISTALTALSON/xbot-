@@ -1,9 +1,4 @@
 [
-  "International expansion announcements are usually about regulatory arbitrage.",
-  "Annual contract value is a vanity metric without net revenue retention.",
-  "API-first businesses have better gross margins than they look like they should.",
-  "The board composition changed before the pivot announcement.",
-  "The reorg flattened management. The decision velocity got worse.",
   "Safety alignment research can't move fast enough.",
   "Alignment tax is real and nobody's publishing it honestly.",
   "The product announcement is more interesting than the revenue numbers.",
@@ -98,5 +93,10 @@
   "Regulatory pressure is reshaping product roadmaps in real time.",
   "Annual contract value is a vanity metric without net revenue retention.",
   "The strategy deck and the product roadmap are still not the same document.",
-  "Nation-state tactics showing up in commodity attacks now."
+  "Nation-state tactics showing up in commodity attacks now.",
+  "CLA requirements discourage contributions more than they protect IP.",
+  "Breaking changes with major version bumps is the minimum social contract.",
+  "The API stability guarantee is in the README. The semver says otherwise.",
+  "The burnout is visible in the changelog. Commit frequency dropped six months ago.",
+  "The reorg flattened management. The decision velocity got worse."
 ]
