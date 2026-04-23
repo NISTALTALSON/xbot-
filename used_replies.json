@@ -1,9 +1,4 @@
 [
-  "CLA requirements discourage contributions more than they protect IP.",
-  "Breaking changes with major version bumps is the minimum social contract.",
-  "The API stability guarantee is in the README. The semver says otherwise.",
-  "The burnout is visible in the changelog. Commit frequency dropped six months ago.",
-  "The reorg flattened management. The decision velocity got worse.",
   "Credential stuffing at scale works because people reuse passwords.",
   "The board composition changed before the pivot announcement.",
   "Freemium conversion rates determine whether the unit economics work.",
@@ -98,5 +93,10 @@
   "The product is fine. The go-to-market is where it falls apart.",
   "Vertical SaaS multiples are compressing across the board.",
   "Quarterly guidance revision is where the real story was.",
-  "Category creation is an expensive marketing strategy that rarely works."
+  "Category creation is an expensive marketing strategy that rarely works.",
+  "Annual contract value is a vanity metric without net revenue retention.",
+  "Revenue recognition change in the footnotes is always worth checking.",
+  "The board composition changed before the pivot announcement.",
+  "Enterprise sales cycles are longer than most runways.",
+  "The market is pricing in a lot of optimism here."
 ]
