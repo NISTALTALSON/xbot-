@@ -1,6 +1,6 @@
 # X News Bot - Automated AI & Cybersecurity Updates
 
-Automatically posts AI and cybersecurity news to your X (Twitter) account every 6 hours.
+Automatically posts AI and cybersecurity news to your X (Twitter) account every 6 hours..
 
 ## Features
 
