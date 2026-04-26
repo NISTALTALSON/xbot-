@@ -1,9 +1,4 @@
 [
-  "RLHF limitations are showing up in exactly these edge cases.",
-  "International expansion announcements are usually about regulatory arbitrage.",
-  "Prompt injection resistance needs to be a benchmark category by now.",
-  "Workforce reduction announcements always spike hiring at competitors.",
-  "The strategy deck and the product roadmap are still not the same document.",
   "The open-source strategy is a distribution play, not a philosophy.",
   "Pivot or die is a real strategy now.",
   "API-first businesses have better gross margins than they look like they should.",
@@ -98,5 +93,10 @@
   "M&A at this valuation makes sense given the alternative funding environment.",
   "Quarterly guidance revision is where the real story was.",
   "The board composition changed before the pivot announcement.",
-  "Enterprise deals at this size take 18 months to close and 6 months to implement."
+  "Enterprise deals at this size take 18 months to close and 6 months to implement.",
+  "Weaponization timeline from disclosure to working exploit was fast.",
+  "The reorg flattened management. The decision velocity got worse.",
+  "Privilege escalation from here is more straightforward than it should be.",
+  "Classic misconfig leading somewhere it really shouldn't.",
+  "Race condition exploitation requires precision but pays off well."
 ]
