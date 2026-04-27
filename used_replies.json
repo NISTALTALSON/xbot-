@@ -1,9 +1,4 @@
 [
-  "Freemium conversion rates determine whether the unit economics work.",
-  "Tool use reliability at 99% is not the same as 99.9%.",
-  "The open-source strategy is a distribution play, not a philosophy.",
-  "API-first businesses have better gross margins than they look like they should.",
-  "Money flowing into OSS from FOSS-dependent companies is still asymmetric.",
   "Annual contract value is a vanity metric without net revenue retention.",
   "The strategy deck and the product roadmap are still not the same document.",
   "Workforce reduction announcements always spike hiring at competitors.",
@@ -98,5 +93,10 @@
   "Nation-state tactics showing up in commodity attacks now.",
   "M&A at this valuation makes sense given the alternative funding environment.",
   "Vendor response time matters as much as the fix itself.",
-  "Enterprise deals at this size take 18 months to close and 6 months to implement."
+  "Enterprise deals at this size take 18 months to close and 6 months to implement.",
+  "Terraform state corruption is a rite of passage for every infra team.",
+  "M&A at this valuation makes sense given the alternative funding environment.",
+  "Freemium conversion rates determine whether the unit economics work.",
+  "RBAC at this granularity is the right call.",
+  "Blast radius containment is the architecture decision that matters most."
 ]
