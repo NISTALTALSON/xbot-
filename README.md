@@ -163,7 +163,7 @@ The `posted_items.json` file tracks posted items. If it's not working:
 
 MIT License - Do whatever you want with it!
 
-## Support
+## Support.
 
 Having issues? Check:
 1. GitHub Actions logs
