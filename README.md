@@ -78,7 +78,7 @@ The bot runs at::
 
 Edit `.github/workflows/bot.yml`:
 
-```yaml
+```yaml.
 # Every 3 hours
 - cron: '0 */3 * * *'
 
