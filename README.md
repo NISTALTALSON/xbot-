@@ -159,7 +159,7 @@ The `posted_items.json` file tracks posted items. If it's not working:
 - Bot only posts, doesn't read DMs or user data
 - reply to comments
 
-## License
+## License.
 
 MIT License - Do whatever you want with it!
 
