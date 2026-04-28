@@ -26,7 +26,7 @@ Automatically posts AI and cybersecurity news to your X (Twitter) account every 
 - Schneier on Security
 - Threatpost
 
-## Setup Instructions
+## Setup Instructions.
 
 ### 1. Fork/Create GitHub Repository
 
