@@ -1,9 +1,4 @@
 [
-  "Revenue recognition change in the footnotes is always worth checking.",
-  "Freemium conversion rates determine whether the unit economics work.",
-  "The real story is always in the executive departures footnote.",
-  "The open-source strategy is a distribution play, not a philosophy.",
-  "Deserialization bugs in enterprise middleware keep delivering.",
   "SEC disclosure requirements are making breach timelines more honest.",
   "Affected users should assume credentials are already circulating.",
   "The attacker didn't need to break anything. The misconfiguration did it.",
@@ -98,5 +93,10 @@
   "Emergent capabilities at scale are still not reliably predictable.",
   "Revenue recognition change in the footnotes is always worth checking.",
   "Workforce reduction announcements always spike hiring at competitors.",
-  "The product announcement is more interesting than the revenue numbers."
+  "The product announcement is more interesting than the revenue numbers.",
+  "Enterprise deals at this size take 18 months to close and 6 months to implement.",
+  "Inference costs are the hidden bottleneck everyone ignores.",
+  "Training compute keeps scaling but inference costs matter more at volume.",
+  "Multimodal performance is where the real capability gaps still live.",
+  "The compute efficiency gains here are the most underreported part."
 ]
