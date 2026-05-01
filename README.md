@@ -1,176 +1,118 @@
-# X News Bot - Automated AI & Cybersecurity Updates.
+# Creator Growth Research Bot
 
-Automatically posts AI and cybersecurity news to your X (Twitter) account every 6 hours..
+An automated Bluesky bot that researches creator economy, social media, content marketing, SEO, and audience-growth sources, then turns the best items into readable mini-threads.
 
-## Features
+The goal is not to spam links. The bot posts useful research briefs that help followers learn how to become better content creators, grow an audience, and build repeatable content systems.
 
-- 🤖 Fully automated - runs on GitHub Actions (100% free)
-- 📰 Pulls from 9+ top RSS feeds (AI, cybersecurity, ethical hacking)
-- 🔄 Posts 2-3 random updates every 6 hours
-- 🚫 Avoids duplicates - tracks what's already posted
-- #️⃣ Automatically adds relevant hashtags
-- ⚡ Rate limiting to avoid API issues
+## What It Does
 
-## News Sources
+- Fetches creator-growth research from RSS feeds.
+- Scores each item for practical creator value.
+- Pulls readable context from RSS summaries and article pages.
+- Formats each source as a 4-post Bluesky thread:
+  - Creator growth research hook
+  - Useful signal from the article
+  - Concrete creator move
+  - Source link and hashtags
+- Avoids duplicate posts with `posted_items.json`.
+- Saves posted history back to GitHub when it runs in Actions.
+- Supports dry runs so you can preview posts before publishing.
 
-**AI:**
-- ArXiv AI Research
-- Google AI Blog
-- OpenAI Blog
+## Sources
 
-**Cybersecurity & Ethical Hacking:**
-- BleepingComputer
-- The Hacker News
-- Dark Reading
-- Krebs on Security
-- Schneier on Security
-- Threatpost
+Current feeds in `bot.py`:
 
-## Setup Instructions.
+- Buffer
+- Creator Science
+- Social Media Examiner
+- Hootsuite Blog
+- Social Media Today
+- Sprout Social
+- HubSpot Marketing
+- Search Engine Journal
+- Neal Schaffer
 
-### 1. Fork/Create GitHub Repository
+These are chosen because they regularly cover audience growth, creator strategy, platform changes, content marketing, SEO, and monetization.
 
-1. Create a new repository on GitHub (can be private)
-2. Upload these files:
-   - `bot.py`
-   - `requirements.txt`
-   - `.github/workflows/bot.yml`
+## Setup
 
-### 2. Add X API Secrets to GitHub
+### 1. Install Dependencies
 
-1. Go to your repo → **Settings** → **Secrets and variables** → **Actions**
-2. Click **New repository secret**
-3. Add these 4 secrets:
+```bash
+pip install -r requirements.txt
+```
 
-   | Secret Name | Value |
-   |-------------|-------|
-   | `X_CONSUMER_KEY` | Your consumer key |
-   | `X_CONSUMER_SECRET` | Your consumer secret |
-   | `X_ACCESS_TOKEN` | Your access token |
-   | `X_ACCESS_TOKEN_SECRET` | Your access token secret |
+### 2. Add Bluesky Secrets
 
-### 3. Enable GitHub Actions
+In your GitHub repository, go to:
 
-1. Go to **Actions** tab in your repo
-2. Click **"I understand my workflows, go ahead and enable them"**
-3. The bot will now run automatically every 6 hours!
+`Settings` -> `Secrets and variables` -> `Actions` -> `New repository secret`
 
-### 4. Test It Manually (Optional)
+Add:
 
-1. Go to **Actions** → **X News Bot**
-2. Click **Run workflow** → **Run workflow**
-3. Watch it run in real-time
-4. Check your X account for new posts!
+| Secret Name | Value |
+| --- | --- |
+| `BLUESKY_HANDLE` | Your Bluesky handle |
+| `BLUESKY_APP_PASSWORD` | A Bluesky app password |
 
-## Scheduling
+### 3. Run Locally Without Posting
 
-The bot runs at::
-- 12:00 AM UTC (6:00 PM EST)
-- 6:00 AM UTC (12:00 AM EST)
-- 12:00 PM UTC (6:00 AM EST)
-- 6:00 PM UTC (12:00 PM EST)
+```bash
+python bot.py --dry-run --limit 1
+```
 
-**Total:** 8-12 posts per day
+This fetches sources and prints the thread without posting.
+
+### 4. Run Locally and Post
+
+```bash
+set BLUESKY_HANDLE=your-handle.bsky.social
+set BLUESKY_APP_PASSWORD=your-app-password
+python bot.py --limit 1
+```
+
+PowerShell:
+
+```powershell
+$env:BLUESKY_HANDLE="your-handle.bsky.social"
+$env:BLUESKY_APP_PASSWORD="your-app-password"
+python bot.py --limit 1
+```
+
+## GitHub Actions
+
+The workflow in `.github/workflows/bot.yml` runs every 6 hours and posts 2 research threads per run.
+
+You can change the amount with:
+
+```yaml
+THREADS_PER_RUN: 1
+```
+
+Use fewer threads if you want a calmer account. Quality and consistency are better for follower growth than high-volume posting.
 
 ## Customization
 
-### Change Posting Frequency
+### Change The Niche
 
-Edit `.github/workflows/bot.yml`:
+Edit `RSS_FEEDS` in `bot.py`. Add sources that match the audience you want to attract.
 
-```yaml.
-# Every 3 hours
-- cron: '0 */3 * * *'
+### Tune What Gets Picked
 
-# Every 12 hours
-- cron: '0 */12 * * *'
+Edit these dictionaries in `bot.py`:
 
-# Daily at 9 AM UTC
-- cron: '0 9 * * *'
-```
+- `POSITIVE_KEYWORDS`
+- `ACTION_KEYWORDS`
+- `NEGATIVE_KEYWORDS`
 
-### Add More RSS Feeds
+Higher scores make the bot prioritize those topics.
 
-Edit `bot.py` and add to `RSS_FEEDS` list:
+### Change The Thread Style
 
-```python
-RSS_FEEDS = [
-    # Your existing feeds...
-    "https://your-favorite-blog.com/feed/",
-]
-```
+Edit `build_thread()` and `make_creator_action()` in `bot.py`.
 
-### Change Hashtags
+## Growth Notes
 
-Edit the `format_tweet()` function in `bot.py`:
+This bot can help by posting useful, consistent research. It cannot guarantee thousands of followers by itself. Real growth usually comes from a clear niche, useful posts, replies, collaborations, profile positioning, and repeated testing of what the audience saves and shares.
 
-```python
-hashtags = "\n\n#AI #MachineLearning #Security"
-```
-
-### Change Posts Per Run
-
-Edit this line in `bot.py`:
-
-```python
-# Posts 2-3 tweets per run (change the numbers)
-to_post = new_entries[:random.randint(2, 3)]
-```
-
-## Monitoring
-
-- Check **Actions** tab to see bot runs
-- Green checkmark = success
-- Red X = error (check logs)
-- Your X account for posted tweets
-
-## Troubleshooting
-
-### Bot Not Posting?
-
-1. Check Actions tab for errors
-2. Verify all 4 API secrets are correct
-3. Make sure X API keys are valid
-4. Check if you hit X's rate limits
-
-### Posting Duplicates?
-
-The `posted_items.json` file tracks posted items. If it's not working:
-1. Check if the file is being committed
-2. Ensure workflow has write permissions
-
-### Want to Stop the Bot?
-
-1. Go to **Actions** tab
-2. Click **X News Bot**
-3. Click **•••** menu → **Disable workflow**
-
-## Cost
-
-**$0.00** - Completely free!
-- GitHub Actions: 2,000 minutes/month (free tier)
-- X API: Free tier (with limits)
-- RSS feeds: Free
-
-## Privacy & Security
-
-- Never commit API keys to the repo
-- Use GitHub Secrets only
-- Bot only posts, doesn't read DMs or user data
-- reply to comments
-
-## License.
-
-MIT License - Do whatever you want with it!
-
-## Support.
-
-Having issues? Check:
-1. GitHub Actions logs
-2. X API status
-3. RSS feed availability
-
----
-
-**Made with 🤖 by an automated bot**.
-
+Use the bot as the research engine. Pair it with human replies and original opinions for best results.

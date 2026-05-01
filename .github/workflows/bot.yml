@@ -1,75 +1,47 @@
-name: AISecurityDaily Bot — Hourly
+name: Creator Growth Research Bot
 
 on:
   schedule:
-    # Every hour at :00
-    - cron: '0 * * * *'
+    - cron: '0 */6 * * *'
   workflow_dispatch:
-    inputs:
-      debug:
-        description: 'Enable debug output'
-        required: false
-        default: 'false'
+
+permissions:
+  contents: write
 
 jobs:
-  post:
+  post-research:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    # Give the workflow write permission to commit state files back
-    permissions:
-      contents: write
-
+    
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          # Fetch full history so git push works cleanly
-          fetch-depth: 1
-          token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run bot
+      env:
+        BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
+        BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+        THREADS_PER_RUN: 2
+      run: python bot.py
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run bot
-        env:
-          BLUESKY_HANDLE:        ${{ secrets.BLUESKY_HANDLE }}
-          BLUESKY_APP_PASSWORD:  ${{ secrets.BLUESKY_APP_PASSWORD }}
-          TELEGRAM_BOT_TOKEN:    ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHANNEL_ID:   ${{ secrets.TELEGRAM_CHANNEL_ID }}
-          MASTODON_ACCESS_TOKEN: ${{ secrets.MASTODON_ACCESS_TOKEN }}
-          GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
-        run: python bot.py
-
-      # Commit state files back so next run knows what was posted/engaged
-      # Using git directly — more reliable than cache for persistent state
-      - name: Commit state files
-        if: always()  # run even if bot had errors, to save partial state
-        run: |
-          git config user.name  "AISecurityDaily Bot"
-          git config user.email "bot@aisecuritydaily.auto"
-          
-          # Stage state files (|| true so it doesn't fail if files don't exist)
-          git add posted_items.json engaged_items.json used_replies.json 2>/dev/null || true
-          
-          # Only commit if there are actual changes
-          if git diff --cached --quiet; then
-            echo "No state changes to commit."
-          else
-            git commit -m "bot: state update $(date '+%Y-%m-%d %H:%M UTC')"
-            git push origin HEAD:${{ github.ref_name }}
-            echo "State committed and pushed."
-          fi
+    - name: Save posted item history
+      run: |
+        if [ -n "$(git status --porcelain posted_items.json)" ]; then
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add posted_items.json
+          git commit -m "Update posted item history [skip ci]"
+          git pull --rebase
+          git push
+        else
+          echo "No posted item history changes to save."
+        fi
