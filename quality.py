@@ -381,7 +381,7 @@ def send_x_draft(v2, entry, fmt, hashtags, dry=False):
     skey = os.environ.get("SIGNAL_APIKEY", "").strip()
     if sphone and skey:
         try:
-            r = requests.get("https://api.callmebot.com/signal/send.php",
+            r = requests.get("https://signal.callmebot.com/signal/send.php",
                              params={"phone": sphone, "apikey": skey, "text": msg}, timeout=30)
             print(f"   [v5] X draft -> Signal: HTTP {r.status_code}")
         except Exception as ex:
