@@ -377,6 +377,15 @@ def send_x_draft(v2, entry, fmt, hashtags, dry=False):
             print(f"   [v5] X draft -> WhatsApp: HTTP {r.status_code}")
         except Exception as ex:
             print(f"   [v5] WhatsApp draft failed: {str(ex)[:60]}")
+    sphone = os.environ.get("SIGNAL_PHONE", "").strip()
+    skey = os.environ.get("SIGNAL_APIKEY", "").strip()
+    if sphone and skey:
+        try:
+            r = requests.get("https://api.callmebot.com/signal/send.php",
+                             params={"phone": sphone, "apikey": skey, "text": msg}, timeout=30)
+            print(f"   [v5] X draft -> Signal: HTTP {r.status_code}")
+        except Exception as ex:
+            print(f"   [v5] Signal draft failed: {str(ex)[:60]}")
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     chat = os.environ.get("TELEGRAM_DRAFT_CHAT_ID", "").strip()
     if token and chat:
