@@ -30,6 +30,12 @@ from bs4 import BeautifulSoup
 from io import BytesIO
 from urllib.parse import urljoin
 
+try:
+    import quality
+except Exception as _qe:
+    print(f'quality module unavailable, running v4 behaviour: {_qe}')
+    quality = None
+
 # ─────────────────────────────────────────────────────────────
 #  CONFIG
 # ─────────────────────────────────────────────────────────────
@@ -45,7 +51,7 @@ MIN_POSTS = 1
 MAX_POSTS = 2
 
 LIKES_PER_RUN   = 6
-REPLIES_PER_RUN = 5
+REPLIES_PER_RUN = 1
 
 REPLY_MEMORY = 100  # remember last 100 replies to avoid repeats
 
@@ -969,7 +975,7 @@ def build_post_text(entry: dict, summary: str) -> str:
 #  BLUESKY RICH TEXT
 # ─────────────────────────────────────────────────────────────
 
-def build_bluesky_record(post_text: str, image_blob=None) -> dict:
+def build_bluesky_record(post_text: str, image_blob=None, alt: str = "Article image") -> dict:
     facets = []
 
     # URL facets
@@ -1005,7 +1011,7 @@ def build_bluesky_record(post_text: str, image_blob=None) -> dict:
     if image_blob:
         record["embed"] = {
             "$type": "app.bsky.embed.images",
-            "images": [{"alt": "Article image", "image": image_blob}]
+            "images": [{"alt": alt, "image": image_blob}]
         }
     return record
 
@@ -1419,11 +1425,17 @@ def fetch_news():
 # ─────────────────────────────────────────────────────────────
 
 def main():
-    banner = "AISecurityDaily Bot v4 — Fixed Posting · 300+ Replies · 80+ Feeds"
+    banner = "AISecurityDaily Bot v5 — Ranked stories · Hook-first copy · Analytics loop"
     print(f"\n{'='*70}")
     print(f"🤖 {banner}")
     print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print(f"{'='*70}\n")
+
+    dry_run   = os.environ.get('DRY_RUN') == '1'
+    forced    = os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch' or dry_run
+    if quality is not None and not forced and datetime.utcnow().hour not in quality.POST_HOURS_UTC:
+        print(f"Off-peak hour ({datetime.utcnow().hour:02d} UTC) - skipping. Peak hours: {sorted(quality.POST_HOURS_UTC)}")
+        return
 
     bsky_handle   = os.environ.get('BLUESKY_HANDLE')
     bsky_password = os.environ.get('BLUESKY_APP_PASSWORD')
@@ -1434,7 +1446,7 @@ def main():
     platforms    = []
     bsky_session = None
 
-    if bsky_handle and bsky_password:
+    if bsky_handle and bsky_password and not dry_run:
         print(f"🔐 Authenticating Bluesky as {bsky_handle}…")
         bsky_session = bsky_create_session(bsky_handle, bsky_password)
         if bsky_session:
@@ -1458,6 +1470,9 @@ def main():
     else:
         print("⚠️  Gemini key missing — using fallback pool (300+ replies)")
 
+    if dry_run:
+        platforms = ['dryrun']
+
     if not platforms:
         print("❌ No platforms configured. Check secrets. Exiting.")
         return
@@ -1478,8 +1493,12 @@ def main():
     if not new_entries:
         print("ℹ️  Nothing new to post this run.")
     else:
-        random.shuffle(new_entries)
-        to_post = new_entries[:random.randint(MIN_POSTS, MAX_POSTS)]
+        if quality is not None:
+            new_entries = quality.rank_entries(new_entries)
+            to_post = new_entries[:1]
+        else:
+            random.shuffle(new_entries)
+            to_post = new_entries[:random.randint(MIN_POSTS, MAX_POSTS)]
         categories_posted = list({e['category'] for e in to_post})
 
         print(f"\n🎯 Posting {len(to_post)} item(s)\n{'─'*60}")
@@ -1516,6 +1535,26 @@ def main():
                     summary = cut[:last + 1] if last > 30 else truncate_to_graphemes(cut, 150) + "…"
                     print(f"   ✍  Fallback summary: {len(summary)} chars")
 
+            v2, fmt = None, None
+            if quality is not None:
+                fmt = quality.pick_format()
+                v2 = quality.generate_post(title, body_text, category, fmt)
+                if v2:
+                    summary = v2['body']
+                    print(f"   [v5] format={fmt} | hook: {v2['hook']}")
+                else:
+                    print('   [v5] generation failed - using v4 summary format')
+            if dry_run:
+                prev = (quality.compose_post(v2, entry, HASHTAGS.get(category, ''), count_graphemes,
+                                             truncate_to_graphemes, BSKY_MAX_GRAPHEMES)
+                        if v2 else build_post_text(entry, summary))
+                print('   ---- DRY RUN PREVIEW (nothing posted) ----')
+                print(prev)
+                if v2 and v2.get('followup'):
+                    print('   ---- follow-up reply ----')
+                    print(v2['followup'])
+                continue
+
             # Image
             image_bytes = None
             image_url   = entry.get('image_url') or fetch_og_image(link)
@@ -1528,17 +1567,25 @@ def main():
             successes = []
 
             if 'bluesky' in platforms:
-                post_text = build_post_text(entry, summary)
+                post_text = (quality.compose_post(v2, entry, HASHTAGS.get(category, ''), count_graphemes,
+                                                  truncate_to_graphemes, BSKY_MAX_GRAPHEMES)
+                             if v2 else build_post_text(entry, summary))
                 char_count = count_graphemes(post_text)
                 print(f"   📝 Bluesky post: {char_count} graphemes")
                 if char_count > BSKY_MAX_GRAPHEMES + 5:
                     print(f"   ⚠️  Still over limit after truncation — skipping Bluesky")
                 else:
                     blob   = bsky_upload_blob(image_bytes, bsky_session) if image_bytes else None
-                    record = build_bluesky_record(post_text, blob)
+                    record = build_bluesky_record(post_text, blob, alt=title[:280])
                     uri, cid = bsky_post(record, bsky_session)
                     if uri:
                         successes.append('Bluesky')
+                        if quality is not None:
+                            quality.record_post(uri, category, fmt or 'v4', title)
+                            fu = (v2 or {}).get('followup')
+                            if fu:
+                                time.sleep(3)
+                                bsky_reply(truncate_to_graphemes(fu, 290), uri, cid, uri, cid, bsky_session)
                         print(f"   ✅ Bluesky: {uri}")
 
             if 'telegram' in platforms:
@@ -1565,6 +1612,13 @@ def main():
                 time.sleep(wait)
 
     # ── Engagement (runs after posting + state saved) ──────────
+    if quality is not None and not dry_run:
+        try:
+            quality.refresh_metrics()
+            quality.print_report()
+        except Exception as _ex:
+            print(f'   [v5] analytics skipped: {_ex}')
+
     if bsky_session:
         cats = categories_posted if categories_posted else random.sample(
             list(RSS_FEEDS.keys()), min(4, len(RSS_FEEDS))

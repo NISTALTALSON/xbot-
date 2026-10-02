@@ -6,6 +6,10 @@ on:
     - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
+      dry_run:
+        description: 'Dry run (generate and preview only, post nothing)'
+        default: 'false'
+    inputs:
       debug:
         description: 'Enable debug output'
         required: false
@@ -52,6 +56,7 @@ jobs:
           TELEGRAM_CHANNEL_ID:   ${{ secrets.TELEGRAM_CHANNEL_ID }}
           MASTODON_ACCESS_TOKEN: ${{ secrets.MASTODON_ACCESS_TOKEN }}
           GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
+          DRY_RUN:               ${{ github.event.inputs.dry_run == 'true' && '1' || '0' }}
         run: python bot.py
 
       # Commit state files back so next run knows what was posted/engaged
@@ -63,7 +68,7 @@ jobs:
           git config user.email "bot@aisecuritydaily.auto"
           
           # Stage state files (|| true so it doesn't fail if files don't exist)
-          git add posted_items.json engaged_items.json used_replies.json 2>/dev/null || true
+          git add posted_items.json engaged_items.json used_replies.json analytics.json 2>/dev/null || true
           
           # Only commit if there are actual changes
           if git diff --cached --quiet; then
