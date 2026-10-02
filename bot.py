@@ -100,22 +100,28 @@ def is_sensitive_post(text: str) -> bool:
 
 RSS_FEEDS = {
     'artificial_intelligence': [
+        "https://simonwillison.net/atom/everything/",
+        "https://www.latent.space/feed",
+        "https://importai.substack.com/feed",
+        "https://www.interconnects.ai/feed",
+        "https://magazine.sebastianraschka.com/feed",
+        "https://openai.com/news/rss.xml",
+        "https://deepmind.google/blog/rss.xml",
+        "https://huggingface.co/blog/feed.xml",
+        "https://mistral.ai/news/rss/",
+        "https://blog.google/technology/ai/rss/",
+        "https://developer.nvidia.com/blog/feed",
+        "https://blogs.nvidia.com/feed/",
+        "https://the-decoder.com/feed/",
+        "https://www.marktechpost.com/feed/",
+        "https://techcrunch.com/category/artificial-intelligence/feed/",
+        "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+        "https://arstechnica.com/ai/feed/",
+        "https://www.technologyreview.com/feed/",
+        "https://www.unite.ai/feed/",
+        "https://machinelearningmastery.com/feed/",
         "https://rss.arxiv.org/rss/cs.AI",
         "https://rss.arxiv.org/rss/cs.LG",
-        "https://blog.google/technology/ai/rss/",
-        "https://openai.com/blog/rss.xml",
-        "https://www.technologyreview.com/feed/",
-        "https://venturebeat.com/category/ai/feed/",
-        "https://blogs.nvidia.com/feed/",
-        "https://www.deepmind.com/blog/rss.xml",
-        "https://machinelearningmastery.com/feed/",
-        "https://ai.googleblog.com/feeds/posts/default",
-        "https://www.unite.ai/feed/",
-        "https://huggingface.co/blog/feed.xml",
-        "https://bair.berkeley.edu/blog/feed.xml",
-        "https://blogs.microsoft.com/ai/feed/",
-        "https://mistral.ai/news/rss/",
-        "https://stability.ai/news/rss.xml",
     ],
     'cybersecurity': [
         "https://www.bleepingcomputer.com/feed/",
@@ -1535,24 +1541,27 @@ def main():
                     summary = cut[:last + 1] if last > 30 else truncate_to_graphemes(cut, 150) + "…"
                     print(f"   ✍  Fallback summary: {len(summary)} chars")
 
-            v2, fmt = None, None
+            v2, fmt, linkpos = None, None, 'root'
             if quality is not None:
-                fmt = quality.pick_format()
+                fmt = quality.pick_format(entry)
+                linkpos = quality.pick_linkpos()
                 v2 = quality.generate_post(title, body_text, category, fmt)
                 if v2:
                     summary = v2['body']
-                    print(f"   [v5] format={fmt} | hook: {v2['hook']}")
+                    print(f"   [v5] format={fmt} link={linkpos} | hook: {v2['hook']}")
                 else:
                     print('   [v5] generation failed - using v4 summary format')
             if dry_run:
                 prev = (quality.compose_post(v2, entry, HASHTAGS.get(category, ''), count_graphemes,
-                                             truncate_to_graphemes, BSKY_MAX_GRAPHEMES)
+                                             truncate_to_graphemes, BSKY_MAX_GRAPHEMES,
+                                             link_in_root=(linkpos != 'reply'))
                         if v2 else build_post_text(entry, summary))
                 print('   ---- DRY RUN PREVIEW (nothing posted) ----')
                 print(prev)
-                if v2 and v2.get('followup'):
-                    print('   ---- follow-up reply ----')
-                    print(v2['followup'])
+                rt = quality.reply_text(v2, entry, linkpos, count_graphemes, truncate_to_graphemes, 290)
+                if rt:
+                    print('   ---- self-reply ----')
+                    print(rt)
                 continue
 
             # Image
@@ -1568,7 +1577,8 @@ def main():
 
             if 'bluesky' in platforms:
                 post_text = (quality.compose_post(v2, entry, HASHTAGS.get(category, ''), count_graphemes,
-                                                  truncate_to_graphemes, BSKY_MAX_GRAPHEMES)
+                                                  truncate_to_graphemes, BSKY_MAX_GRAPHEMES,
+                                             link_in_root=(linkpos != 'reply'))
                              if v2 else build_post_text(entry, summary))
                 char_count = count_graphemes(post_text)
                 print(f"   📝 Bluesky post: {char_count} graphemes")
@@ -1581,11 +1591,11 @@ def main():
                     if uri:
                         successes.append('Bluesky')
                         if quality is not None:
-                            quality.record_post(uri, category, fmt or 'v4', title)
-                            fu = (v2 or {}).get('followup')
-                            if fu:
+                            quality.record_post(uri, category, fmt or 'v4', title, linkpos if v2 else 'root')
+                            rt = quality.reply_text(v2, entry, linkpos, count_graphemes, truncate_to_graphemes, 290)
+                            if rt:
                                 time.sleep(3)
-                                bsky_reply(truncate_to_graphemes(fu, 290), uri, cid, uri, cid, bsky_session)
+                                bsky_reply(rt, uri, cid, uri, cid, bsky_session)
                         print(f"   ✅ Bluesky: {uri}")
 
             if 'telegram' in platforms:
@@ -1620,9 +1630,7 @@ def main():
             print(f'   [v5] analytics skipped: {_ex}')
 
     if bsky_session:
-        cats = categories_posted if categories_posted else random.sample(
-            list(RSS_FEEDS.keys()), min(4, len(RSS_FEEDS))
-        )
+        cats = categories_posted if categories_posted else ['artificial_intelligence', 'software_dev']
         run_engagement(bsky_session, cats)
 
     print(f"\n{'='*70}")

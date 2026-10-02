@@ -26,13 +26,39 @@ MAX_TRACKED = 400
 POST_HOURS_UTC = {int(h) for h in os.environ.get("POST_HOURS_UTC", "4,7,11,13,16,20").split(",") if h.strip()}
 
 FORMATS = {
-    "stakes": "Lead with the single most alarming concrete fact or number from the story, then say who is exposed and why they should care.",
-    "action": "Lead with who is affected, then give the reader something to DO today (patch, rotate, disable, check).",
-    "plain": "Explain what happened in plain English using one vivid, accurate analogy. Zero jargon.",
-    "take": "Give a sharp, defensible opinion on what this really signals for the industry, backed by one fact from the story.",
-    "question": "State the story in one punchy line, then end with a real question practitioners would argue about.",
+    "release": "A release breakdown for AI engineers: lead with the model or product name and the single most important capability or number, then what actually changes for people building with it.",
+    "builder": "A practical builder angle: how an engineer could use this, what it costs or limits, or the tradeoff to know before adopting it.",
+    "compare": "What is different versus before: the concrete change (capability, price, context length, speed) that matters, not marketing language.",
+    "reality": "A grounded hype check: what is genuinely new here and what the headline does not prove. Only state limits that follow from the excerpt.",
+    "take": "A sharp, defensible opinion on what this signals for where AI is heading, backed by one fact from the story.",
+    "plain": "Explain what happened in plain English with one accurate analogy and zero jargon.",
+    "question": "State the news in one punchy line, then end with a real question AI engineers would debate.",
+    "stakes": "Lead with the most striking concrete fact or number and who is exposed or affected.",
+    "action": "Lead with who is affected, then one thing the reader can do today (patch, rotate, disable, try, check).",
 }
-FOLLOWUP_FORMATS = {"stakes", "action"}
+FOLLOWUP_FORMATS = {"release", "builder", "compare", "stakes", "action"}
+KIND_FORMATS = {
+    "release": ["release", "builder", "compare", "reality", "take"],
+    "ai": ["builder", "take", "plain", "reality", "question", "release"],
+    "paper": ["plain", "builder", "take", "question"],
+    "other": ["stakes", "action", "take", "plain", "question"],
+}
+AI_CATS = {"artificial_intelligence"}
+AI_WORDS = {
+    "gpt-": 5, "gpt ": 2, "claude": 5, "gemini": 5, "llama": 5, "qwen": 5, "deepseek": 5, "mistral": 4,
+    "grok": 3, "openai": 4, "anthropic": 4, "deepmind": 4, "hugging face": 3, "open-weight": 5,
+    "open weights": 5, "open-source model": 5, "language model": 4, "llm": 4, "foundation model": 4,
+    "benchmark": 3, "state-of-the-art": 3, "sota": 3, "agent": 3, "agentic": 4, "mcp": 3,
+    "model context protocol": 4, "reasoning model": 5, "fine-tun": 3, "context window": 4, "inference": 3,
+    "multimodal": 3, "embedding": 2, "transformer": 2, "diffusion": 2, "copilot": 2, "coding agent": 4,
+    "ai model": 4, "generative ai": 3, "pricing": 1, "gpu": 2, "eval": 2, "rag": 2,
+}
+RELEASE_RX = re.compile(r"\b(introducing|announcing|launch(?:es|ed)?|releas(?:es|ed|ing)|unveil(?:s|ed)?|"
+                        r"now available|rolls? out|open[- ]sources?|debuts?)\b", re.I)
+VERSION_RX = re.compile(r"\b(v?\d+\.\d+|gpt-?\d\S*|claude[\s-]\w+|gemini[\s-]\d\S*|llama[\s-]?\d\S*|qwen[\s-]?\d\S*)", re.I)
+PRIMARY = ("openai.com", "deepmind", "anthropic.com", "huggingface.co", "mistral.ai", "blog.google",
+           "developer.nvidia.com", "blogs.nvidia.com", "ai.meta.com", "simonwillison.net", "latent.space",
+           "interconnects.ai")
 
 HOT = {
     "zero-day": 6, "0-day": 6, "actively exploited": 7, "exploited in the wild": 7,
@@ -59,12 +85,40 @@ def _age_hours(entry):
     return max(0.0, (time.time() - calendar.timegm(t)) / 3600)
 
 
+def _ai_hits(text):
+    return sum(w for k, w in AI_WORDS.items() if k in text)
+
+
+def story_kind(entry):
+    title = entry["title"]
+    if "arxiv.org" in entry.get("link", ""):
+        return "paper"
+    if entry.get("category") in AI_CATS or _ai_hits(title.lower()) >= 4:
+        return "release" if (RELEASE_RX.search(title) or VERSION_RX.search(title)) else "ai"
+    return "other"
+
+
 def rank_entries(entries):
     toks = [_tokens(e["title"]) for e in entries]
     scored = []
     for i, e in enumerate(entries):
         text = (e["title"] + " " + (e.get("summary") or "")[:300]).lower()
+        link = e.get("link", "")
         s = sum(w for k, w in HOT.items() if k in text)
+        ai = _ai_hits(text)
+        s += min(14, ai)
+        if e.get("category") in AI_CATS:
+            s += 6
+        elif ai < 3:
+            s -= 8  # off-topic for an AI-focused account unless it is a huge story
+        if "arxiv.org" in link and ai < 6:
+            s -= 5
+        if any(p in link for p in PRIMARY):
+            s += 3  # first-party announcements and expert blogs outperform rewrites
+        if RELEASE_RX.search(e["title"]):
+            s += 4
+        if VERSION_RX.search(e["title"]):
+            s += 2
         s -= 6 * sum(1 for j in JUNK if j in e["title"].lower())
         age = _age_hours(e)
         if age is not None:
@@ -78,7 +132,7 @@ def rank_entries(entries):
     scored.sort(key=lambda x: x[0], reverse=True)
     print("   [v5] top stories by score:")
     for s, e in scored[:3]:
-        print(f"        {s:5.1f}  {e['title'][:70]}")
+        print(f"        {s:5.1f}  [{story_kind(e)}] {e['title'][:66]}")
     return [e for _, e in scored]
 
 
@@ -99,12 +153,12 @@ def _save(d):
         json.dump(d, f, indent=1)
 
 
-def record_post(uri, category, fmt, title):
+def record_post(uri, category, fmt, title, linkpos="root"):
     d = _load()
     now = datetime.now(timezone.utc)
     d["posts"].append({"uri": uri, "ts": now.isoformat(), "hour": now.hour, "category": category,
-                       "format": fmt, "title": title[:80], "score": 0, "likes": 0, "reposts": 0,
-                       "replies": 0, "quotes": 0, "checked": None})
+                       "format": fmt, "linkpos": linkpos, "title": title[:80], "score": 0, "likes": 0,
+                       "reposts": 0, "replies": 0, "quotes": 0, "checked": None})
     _save(d)
 
 
@@ -150,7 +204,7 @@ def print_report():
     posts = _load()["posts"]
     done = [p for p in posts if p.get("checked")]
     print(f"\n   [v5] ANALYTICS - {len(done)} measured posts of {len(posts)} tracked")
-    for key in ("format", "category", "hour"):
+    for key in ("format", "category", "hour", "linkpos"):
         rows = sorted(_avg_by(done, key).items(), key=lambda kv: kv[1][0], reverse=True)[:5]
         print(f"        by {key}: " + ", ".join(f"{k}={a:.1f} (n={n})" for k, (a, n) in rows))
     best = sorted(done, key=lambda p: p["score"], reverse=True)[:3]
@@ -158,13 +212,22 @@ def print_report():
         print(f"        top post: score {p['score']} | {p['format']} | {p['title']}")
 
 
-def pick_format():
-    stats = _avg_by(_load()["posts"], "format")
+def _weighted_pick(key, options):
+    stats = _avg_by(_load()["posts"], key)
     weights = []
-    for f in FORMATS:
-        avg, n = stats.get(f, (0, 0))
-        weights.append(1.0 + avg if n >= 3 else 2.0)  # unproven formats keep getting tried
-    return random.choices(list(FORMATS), weights=weights)[0]
+    for o in options:
+        avg, n = stats.get(o, (0, 0))
+        weights.append(1.0 + avg if n >= 3 else 2.0)  # unproven options keep getting tried
+    return random.choices(options, weights=weights)[0]
+
+
+def pick_format(entry):
+    return _weighted_pick("format", KIND_FORMATS[story_kind(entry)])
+
+
+def pick_linkpos():
+    """A/B test: link in the main post vs. in the self-reply (external links often cut reach)."""
+    return _weighted_pick("linkpos", ["root", "reply"])
 
 
 # ---------------------------------------------------------------- generation
@@ -214,8 +277,8 @@ def generate_post(title, body_text, category, fmt):
         return None
     want_fu = fmt in FOLLOWUP_FORMATS
     prompt = (
-        "You write for AISecurityDaily, a cybersecurity and AI-security news account on Bluesky. "
-        "Readers are practitioners, students and curious tech people.\n"
+        "You write for an AI news account on Bluesky covering new models, releases, tooling, research and AI security. "
+        "Readers are AI engineers, ML practitioners, developers and curious tech people.\n"
         f"Category: {category.replace('_', ' ')}\nHeadline: {title}\n"
         f"Article excerpt:\n{body_text[:3000]}\n\n"
         f"Post format: {FORMATS[fmt]}\n\n"
@@ -223,29 +286,45 @@ def generate_post(title, body_text, category, fmt):
         '- "hook": first line, max 90 chars. Stop the scroll with a concrete fact, number, name or '
         "consequence from the article. No clickbait, no 'BREAKING', no emoji at the start.\n"
         '- "body": 1-2 sentences, max 170 chars, the why-it-matters or the angle.\n'
-        + ('- "followup": max 240 chars, 2-3 concrete steps a reader can take today, numbered.\n' if want_fu else "")
+        + ('- "followup": max 240 chars, 2-3 short numbered points a builder can act on or remember '
+           '(what is new, limits or cost if stated, how to try or apply it). Facts from the excerpt only.\n' if want_fu else "")
         + "\nRules: use ONLY facts present in the excerpt; never invent numbers, names, CVE ids or dates; "
         "if unsure, leave it out. No URLs, hashtags or source names. Plain words, active voice, sound like "
-        "a sharp practitioner, not a press release. At most one emoji in the whole post, only if it adds meaning."
+        "a sharp AI engineer sharing what they just read, not a press release. Avoid hype words like revolutionary, game-changing or groundbreaking. At most one emoji in the whole post, only if it adds meaning."
     )
     return parse_post_json(_gemini_json(prompt))
 
 
-def compose_post(v2, entry, hashtags, count, trunc, limit):
+def compose_post(v2, entry, hashtags, count, trunc, limit, link_in_root=True):
     link = entry["link"]
     tag = (hashtags or "").split()[0] if hashtags else ""
-    footer = f"{tag}\n{link}" if tag else link
+    parts_footer = [x for x in (tag, link if link_in_root else "") if x]
+    footer = "\n".join(parts_footer)
     hook, body = v2["hook"], v2["body"]
-    room = limit - count(f"{hook}\n\n\n\n{footer}")
+    base = f"{hook}\n\n\n\n{footer}" if footer else f"{hook}\n\n"
+    room = limit - count(base)
     if room >= 40:
         if count(body) > room:
             cut = trunc(body, room)
-            ends = [cut.rfind(c) for c in ".!?"]
-            end = max(ends)
+            end = max(cut.rfind(c) for c in ".!?")
             body = cut[:end + 1] if end >= 30 else cut.rsplit(" ", 1)[0].rstrip(",;:- ") + "..."
-        post = f"{hook}\n\n{body}\n\n{footer}"
+        post = f"{hook}\n\n{body}" + (f"\n\n{footer}" if footer else "")
     else:
-        post = f"{hook}\n\n{footer}"
+        post = f"{hook}" + (f"\n\n{footer}" if footer else "")
     if count(post) > limit:
-        post = f"{trunc(hook, limit - count(link) - 2)}\n\n{link}"
+        keep = link if link_in_root else ""
+        post = trunc(hook, limit - count(keep) - 2) + (f"\n\n{keep}" if keep else "")
     return post
+
+
+def reply_text(v2, entry, linkpos, count, trunc, limit):
+    """Self-reply under the main post: key points and/or the source link."""
+    if not v2:
+        return None
+    fu = v2.get("followup", "")
+    src = f"Source: {entry['link']}" if linkpos == "reply" else ""
+    if not (fu or src):
+        return None
+    if fu and src:
+        fu = trunc(fu, limit - count(src) - 2)
+    return "\n\n".join(x for x in (fu, src) if x)
