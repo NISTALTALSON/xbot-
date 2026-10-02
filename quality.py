@@ -328,3 +328,61 @@ def reply_text(v2, entry, linkpos, count, trunc, limit):
     if fu and src:
         fu = trunc(fu, limit - count(src) - 2)
     return "\n\n".join(x for x in (fu, src) if x)
+
+
+# ---------------------------------------------------------------- X drafts (manual posting, free)
+URL_RX = re.compile(r"https?://\S+")
+
+
+def _x_len(text):
+    return len(URL_RX.sub("x" * 23, text))  # X counts every link as 23 characters
+
+
+def build_x_draft(v2, entry, hashtags):
+    """Returns (tweet, reply). Link goes in the reply, since links in the main tweet tend to cut reach."""
+    tags = " ".join((hashtags or "").split()[:2])
+    hook, body = v2["hook"], v2["body"]
+    tail = f"\n\n{tags}" if tags else ""
+    room = 280 - len(hook) - len(tail) - 2
+    if room >= 40:
+        if len(body) > room:
+            cut = body[:room]
+            end = max(cut.rfind(c) for c in ".!?")
+            body = cut[:end + 1] if end >= 30 else cut.rsplit(" ", 1)[0].rstrip(",;:- ") + "..."
+        tweet = f"{hook}\n\n{body}{tail}"
+    else:
+        tweet = f"{hook}{tail}"
+    src = f"Source: {entry['link']}"
+    fu = v2.get("followup", "")
+    if fu and _x_len(fu) + 2 + _x_len(src) > 280:
+        fu = fu[:280 - _x_len(src) - 5].rsplit(" ", 1)[0] + "..."
+    reply = "\n\n".join(x for x in (fu, src) if x)
+    return tweet, reply
+
+
+def send_x_draft(v2, entry, fmt, hashtags, dry=False):
+    """Send a ready-to-paste X post to WhatsApp (CallMeBot) and/or a private Telegram chat."""
+    tweet, reply = build_x_draft(v2, entry, hashtags)
+    msg = f"X DRAFT [{fmt}]\n\nTWEET:\n{tweet}\n\nREPLY (post under the tweet):\n{reply}"
+    if dry:
+        print("   ---- X DRAFT (would be sent to WhatsApp/Telegram) ----")
+        print(msg)
+        return
+    phone = os.environ.get("WHATSAPP_PHONE", "").strip()
+    key = os.environ.get("CALLMEBOT_APIKEY", "").strip()
+    if phone and key:
+        try:
+            r = requests.get("https://api.callmebot.com/whatsapp.php",
+                             params={"phone": phone, "text": msg, "apikey": key}, timeout=30)
+            print(f"   [v5] X draft -> WhatsApp: HTTP {r.status_code}")
+        except Exception as ex:
+            print(f"   [v5] WhatsApp draft failed: {str(ex)[:60]}")
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    chat = os.environ.get("TELEGRAM_DRAFT_CHAT_ID", "").strip()
+    if token and chat:
+        try:
+            r = requests.post(f"https://api.telegram.org/bot{token}/sendMessage",
+                              json={"chat_id": chat, "text": msg, "disable_web_page_preview": True}, timeout=20)
+            print(f"   [v5] X draft -> Telegram: HTTP {r.status_code}")
+        except Exception as ex:
+            print(f"   [v5] Telegram draft failed: {type(ex).__name__}")

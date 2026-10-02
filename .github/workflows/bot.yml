@@ -56,6 +56,9 @@ jobs:
           TELEGRAM_CHANNEL_ID:   ${{ secrets.TELEGRAM_CHANNEL_ID }}
           MASTODON_ACCESS_TOKEN: ${{ secrets.MASTODON_ACCESS_TOKEN }}
           GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
+          WHATSAPP_PHONE:        ${{ secrets.WHATSAPP_PHONE }}
+          CALLMEBOT_APIKEY:      ${{ secrets.CALLMEBOT_APIKEY }}
+          TELEGRAM_DRAFT_CHAT_ID: ${{ secrets.TELEGRAM_DRAFT_CHAT_ID }}
           DRY_RUN:               ${{ github.event.inputs.dry_run == 'true' && '1' || '0' }}
         run: python bot.py
 

@@ -1551,6 +1551,9 @@ def main():
                     print(f"   [v5] format={fmt} link={linkpos} | hook: {v2['hook']}")
                 else:
                     print('   [v5] generation failed - using v4 summary format')
+            if quality is not None and v2:
+                quality.send_x_draft(v2, entry, fmt, HASHTAGS.get(category, ''), dry=dry_run)
+
             if dry_run:
                 prev = (quality.compose_post(v2, entry, HASHTAGS.get(category, ''), count_graphemes,
                                              truncate_to_graphemes, BSKY_MAX_GRAPHEMES,
