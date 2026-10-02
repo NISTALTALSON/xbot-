@@ -360,23 +360,96 @@ def build_x_draft(v2, entry, hashtags):
     return tweet, reply
 
 
-def send_x_draft(v2, entry, fmt, hashtags, dry=False):
-    """Send a ready-to-paste X post to WhatsApp (CallMeBot) and/or a private Telegram chat."""
-    tweet, reply = build_x_draft(v2, entry, hashtags)
-    msg = f"X DRAFT [{fmt}]\n\nTWEET:\n{tweet}\n\nREPLY (post under the tweet):\n{reply}"
-    if dry:
-        print("   ---- X DRAFT (would be sent to WhatsApp/Telegram) ----")
-        print(msg)
-        return
-    phone = os.environ.get("WHATSAPP_PHONE", "").strip()
-    key = os.environ.get("CALLMEBOT_APIKEY", "").strip()
-    if phone and key:
-        try:
-            r = requests.get("https://api.callmebot.com/whatsapp.php",
-                             params={"phone": phone, "text": msg, "apikey": key}, timeout=30)
-            print(f"   [v5] X draft -> WhatsApp: HTTP {r.status_code}")
-        except Exception as ex:
-            print(f"   [v5] WhatsApp draft failed: {str(ex)[:60]}")
+# ---- X-native package (built from the open-sourced X ranking signals, see README notes in chat)
+X_FORMATS = {
+    "thread": "A 4-6 tweet breakdown thread. Tweet 1 is the hook. Each following tweet stands alone and is concrete "
+              "(names, numbers, tradeoffs from the excerpt). Last tweet: the takeaway plus one open question.",
+    "tldr": "ONE tweet: a bold factual first line, then 2-3 short lines (use the - character) of what matters, then one open question.",
+    "hot_take": "ONE tweet: a sharp, defensible opinion about what this means for AI builders, backed by one fact from the "
+                "excerpt, ending with a question that invites disagreement.",
+    "list": "ONE saveable tweet: a one-line hook, then 3-5 short numbered points a builder would bookmark. No question needed.",
+    "poll": "ONE tweet that frames the news in one line and asks a poll question, plus 2-4 poll options of at most 25 characters each.",
+}
+X_KIND = {
+    "release": ["thread", "tldr", "list", "hot_take"],
+    "ai": ["hot_take", "list", "tldr", "poll", "thread"],
+    "paper": ["tldr", "list", "hot_take"],
+    "other": ["tldr", "hot_take", "poll"],
+}
+X_PLAN = ("Post it soon, then stay ~15 min and reply to EVERY comment (author replies are the strongest signal). "
+          "Link goes in the reply, never in the tweet.")
+
+
+def _x_clip(t, limit=275):
+    t = t.strip()
+    if _x_len(t) <= limit:
+        return t
+    cut = t[:limit]
+    end = max(cut.rfind(c) for c in ".!?\n")
+    return cut[:end + 1].strip() if end >= 60 else cut.rsplit(" ", 1)[0].rstrip(",;:- ") + "..."
+
+
+def pick_x_format(entry):
+    opts = X_KIND[story_kind(entry)]
+    return random.choices(opts, weights=[len(opts) - i for i in range(len(opts))])[0]
+
+
+def parse_x_json(raw, fmt):
+    if not raw:
+        return None
+    raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M).strip()
+    try:
+        d = json.loads(raw)
+    except Exception:
+        return None
+    tweets = [_x_clip(str(t)) for t in d.get("tweets", []) if str(t).strip()]
+    if not tweets or len(tweets[0]) < 20:
+        return None
+    tweets = tweets[:6] if fmt == "thread" else tweets[:1]
+    poll = [str(o).strip()[:25] for o in d.get("poll_options", []) if str(o).strip()][:4]
+    return {"tweets": tweets, "poll": poll if fmt == "poll" and len(poll) >= 2 else [],
+            "image": str(d.get("image_idea", "") or "")[:160]}
+
+
+def generate_x_package(entry, body_text, fmt):
+    prompt = (
+        "You are a top AI-engineering creator on X (Twitter) with a growing audience of AI engineers, ML researchers "
+        "and builders. Write ONE post package for the story below.\n"
+        f"Headline: {entry['title']}\nArticle excerpt:\n{body_text[:3000]}\n\n"
+        f"Format: {X_FORMATS[fmt]}\n\n"
+        'Return JSON: {"tweets": [..], "poll_options": [..], "image_idea": ".."}. poll_options only for the poll format.\n'
+        "Rules:\n"
+        "- Every tweet at most 270 characters. No hashtags, no links, no 'BREAKING', no thread emoji.\n"
+        "- Tweet 1 first line: under 70 characters, a concrete fact, number or surprising claim from the excerpt that "
+        "makes people stop and read on.\n"
+        "- Where a question is called for, ask ONE specific question builders would answer from their own experience "
+        "(never 'thoughts?').\n"
+        "- Use ONLY facts in the excerpt. Never invent numbers, names, versions or dates. If unsure, leave it out. "
+        "Opinions must read clearly as opinion.\n"
+        "- Plain words, short lines, line breaks for readability, no hype words (revolutionary, game-changing). "
+        "At most one emoji in total.\n"
+        '- "image_idea": one short line naming a real screenshot or chart from the article to attach '
+        "(benchmark table, pricing table, architecture diagram). Never AI-generated art."
+    )
+    return parse_x_json(_gemini_json(prompt), fmt)
+
+
+def build_x_messages(pkg, entry, fmt):
+    link = f"Source: {entry['link']}"
+    img = f"\nAttach: {pkg['image']}" if pkg.get("image") else ""
+    tweets = pkg["tweets"]
+    if len(tweets) > 1:
+        n = len(tweets)
+        msgs = [f"X THREAD [{fmt}] - {n} tweets coming, one message each.\n{X_PLAN}{img}"]
+        msgs += [f"[{i}/{n}]\n{t}" for i, t in enumerate(tweets, 1)]
+        msgs.append(f"LAST TWEET OF THE THREAD (the link):\n{link}")
+        return msgs
+    extra = ("\n\nCREATE A POLL WITH:\n" + "\n".join(f"- {o}" for o in pkg["poll"])) if pkg.get("poll") else ""
+    return [f"X POST [{fmt}]\n\n{tweets[0]}{extra}\n\nREPLY WITH THE LINK:\n{link}{img}\n\n{X_PLAN}"]
+
+
+def _deliver(msg):
+    """Send one message to every configured channel (Signal / WhatsApp via CallMeBot, Telegram DM)."""
     sphone = os.environ.get("SIGNAL_PHONE", "").strip()
     skey = os.environ.get("SIGNAL_APIKEY", "").strip()
     if sphone and skey:
@@ -386,6 +459,15 @@ def send_x_draft(v2, entry, fmt, hashtags, dry=False):
             print(f"   [v5] X draft -> Signal: HTTP {r.status_code}")
         except Exception as ex:
             print(f"   [v5] Signal draft failed: {str(ex)[:60]}")
+    phone = os.environ.get("WHATSAPP_PHONE", "").strip()
+    key = os.environ.get("CALLMEBOT_APIKEY", "").strip()
+    if phone and key:
+        try:
+            r = requests.get("https://api.callmebot.com/whatsapp.php",
+                             params={"phone": phone, "text": msg, "apikey": key}, timeout=30)
+            print(f"   [v5] X draft -> WhatsApp: HTTP {r.status_code}")
+        except Exception as ex:
+            print(f"   [v5] WhatsApp draft failed: {str(ex)[:60]}")
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     chat = os.environ.get("TELEGRAM_DRAFT_CHAT_ID", "").strip()
     if token and chat:
@@ -395,3 +477,25 @@ def send_x_draft(v2, entry, fmt, hashtags, dry=False):
             print(f"   [v5] X draft -> Telegram: HTTP {r.status_code}")
         except Exception as ex:
             print(f"   [v5] Telegram draft failed: {type(ex).__name__}")
+
+
+def send_x_draft(v2, entry, fmt, hashtags, dry=False, body_text=""):
+    """Build an X-native post (own prompt and formats) and send it for manual posting."""
+    xfmt = pick_x_format(entry)
+    pkg = generate_x_package(entry, body_text, xfmt) if body_text else None
+    if pkg:
+        msgs = build_x_messages(pkg, entry, xfmt)
+        print(f"   [v5] X package: format={xfmt}, {len(pkg['tweets'])} tweet(s)")
+    else:
+        tweet, reply = build_x_draft(v2, entry, "")
+        msgs = [f"X POST [fallback]\n\n{tweet}\n\nREPLY WITH THE LINK:\n{reply}\n\n{X_PLAN}"]
+        print("   [v5] X package generation failed - sending the fallback draft")
+    if dry:
+        print("   ---- X DRAFT (would be sent to Signal/WhatsApp/Telegram) ----")
+        for m in msgs:
+            print(m + "\n   ..")
+        return
+    for i, m in enumerate(msgs):
+        _deliver(m)
+        if i < len(msgs) - 1:
+            time.sleep(2)  # CallMeBot asks for at most one message per second
