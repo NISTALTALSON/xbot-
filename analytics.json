@@ -1,0 +1,19 @@
+{
+ "posts": [
+  {
+   "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx2huhhcmi2x",
+   "ts": "2026-10-04T13:08:06.831275+00:00",
+   "hour": 13,
+   "category": "artificial_intelligence",
+   "format": "compare",
+   "linkpos": "root",
+   "title": "DeepSeek Harness v0.2 Brings Official Desktop Apps to Its Open-Source Agent Harn",
+   "score": 0,
+   "likes": 0,
+   "reposts": 0,
+   "replies": 0,
+   "quotes": 0,
+   "checked": null
+  }
+ ]
+}
