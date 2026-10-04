@@ -8,8 +8,8 @@ on:
     inputs:
       dry_run:
         description: 'Dry run (generate and preview only, post nothing)'
+        required: false
         default: 'false'
-    inputs:
       debug:
         description: 'Enable debug output'
         required: false
