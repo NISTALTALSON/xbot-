@@ -1215,6 +1215,7 @@ def run_engagement(session: dict, categories_to_target: list):
     print(f"   Found {len(unique)} candidate posts")
 
     our_handle = session.get('handle', '')
+    topic_terms = [t for c in categories_to_target for t in ENGAGEMENT_SEARCH.get(c, [])]
 
     for post in unique:
         if likes_done >= LIKES_PER_RUN and replies_done >= REPLIES_PER_RUN:
@@ -1231,6 +1232,12 @@ def run_engagement(session: dict, categories_to_target: list):
         if not text or len(text) < 30:
             continue
         if is_sensitive_post(text):
+            continue
+        tl = text.lower()
+        on_topic = any(t.lower() in tl for t in topic_terms)
+        if not on_topic and quality is not None and quality._ai_hits(tl) >= 3:
+            on_topic = True
+        if not on_topic:
             continue
 
         # ── LIKE ──────────────────────────────────────────────
@@ -1250,9 +1257,6 @@ def run_engagement(session: dict, categories_to_target: list):
                     break
 
             reply_text = gemini_reply(text, matched_cat, used_replies)
-            if not reply_text:
-                reply_text = get_fallback_reply(matched_cat, used_replies)
-
             if not reply_text:
                 continue
 
