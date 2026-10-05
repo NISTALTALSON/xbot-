@@ -8,12 +8,12 @@
    "format": "compare",
    "linkpos": "root",
    "title": "DeepSeek Harness v0.2 Brings Official Desktop Apps to Its Open-Source Agent Harn",
-   "score": 1,
-   "likes": 1,
+   "score": 2,
+   "likes": 2,
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-04T20:46:01.842893+00:00"
+   "checked": "2026-10-05T09:37:44.439123+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx3bh4njgp26",
@@ -23,6 +23,21 @@
    "format": "plain",
    "linkpos": "root",
    "title": "An AI couldn\u2019t beat humans at StarCraft, so it decided to cheat",
+   "score": 0,
+   "likes": 0,
+   "reposts": 0,
+   "replies": 0,
+   "quotes": 0,
+   "checked": "2026-10-05T09:37:44.439143+00:00"
+  },
+  {
+   "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx4ml4bfll22",
+   "ts": "2026-10-05T09:37:41.312795+00:00",
+   "hour": 9,
+   "category": "artificial_intelligence",
+   "format": "take",
+   "linkpos": "root",
+   "title": "The Story of Qwen: Alibaba\u2019s AI Models From 7B to 2.4T",
    "score": 0,
    "likes": 0,
    "reposts": 0,
