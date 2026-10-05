@@ -3,7 +3,7 @@ name: AISecurityDaily Bot — Hourly
 on:
   schedule:
     # Every hour at :00
-    - cron: '0 * * * *'
+    - cron: '17,47 * * * *'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -14,6 +14,10 @@ on:
         description: 'Enable debug output'
         required: false
         default: 'false'
+
+concurrency:
+  group: xbot-run
+  cancel-in-progress: false
 
 jobs:
   post:

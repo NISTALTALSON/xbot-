@@ -72,6 +72,24 @@ JUNK = ("sponsored", "webinar", "podcast", "weekly recap", "week in review", "ne
 STOP = set("the a an of to in on for and or is are was be by with from at as it its this that new how why what after over into".split())
 
 
+ACTIVE_START, ACTIVE_END = 3, 21  # UTC hours the bot may post in
+MIN_GAP_HOURS = float(os.environ.get("MIN_GAP_HOURS", "3.5"))
+
+
+def should_post_now(now=None):
+    """Gap-based gate: GitHub drops/delays cron runs, so post whenever enough time has passed
+    since the last post instead of requiring an exact clock hour."""
+    now = now or datetime.now(timezone.utc)
+    if not (ACTIVE_START <= now.hour < ACTIVE_END):
+        return False, f"outside active window ({ACTIVE_START:02d}-{ACTIVE_END:02d} UTC)"
+    posts = _load()["posts"]
+    if posts:
+        gap = (now - datetime.fromisoformat(posts[-1]["ts"])).total_seconds() / 3600
+        if gap < MIN_GAP_HOURS:
+            return False, f"last post {gap:.1f}h ago (min gap {MIN_GAP_HOURS}h)"
+    return True, "ok"
+
+
 # ---------------------------------------------------------------- ranking
 def _tokens(title):
     return {w for w in re.findall(r"[a-z0-9\-]+", title.lower()) if len(w) > 3 and w not in STOP}

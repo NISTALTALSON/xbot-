@@ -1443,9 +1443,11 @@ def main():
 
     dry_run   = os.environ.get('DRY_RUN') == '1'
     forced    = os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch' or dry_run
-    if quality is not None and not forced and datetime.utcnow().hour not in quality.POST_HOURS_UTC:
-        print(f"Off-peak hour ({datetime.utcnow().hour:02d} UTC) - skipping. Peak hours: {sorted(quality.POST_HOURS_UTC)}")
-        return
+    if quality is not None and not forced:
+        go, why = quality.should_post_now()
+        if not go:
+            print(f"Skipping this run: {why}")
+            return
 
     bsky_handle   = os.environ.get('BLUESKY_HANDLE')
     bsky_password = os.environ.get('BLUESKY_APP_PASSWORD')
