@@ -13,7 +13,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-05T09:37:44.439123+00:00"
+   "checked": "2026-10-05T18:51:17.138387+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx3bh4njgp26",
@@ -28,7 +28,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-05T09:37:44.439143+00:00"
+   "checked": "2026-10-05T18:51:17.138404+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx4ml4bfll22",
@@ -38,6 +38,21 @@
    "format": "take",
    "linkpos": "root",
    "title": "The Story of Qwen: Alibaba\u2019s AI Models From 7B to 2.4T",
+   "score": 1,
+   "likes": 1,
+   "reposts": 0,
+   "replies": 0,
+   "quotes": 0,
+   "checked": "2026-10-05T18:51:17.138408+00:00"
+  },
+  {
+   "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx5lisvuxb26",
+   "ts": "2026-10-05T18:51:10.965658+00:00",
+   "hour": 18,
+   "category": "artificial_intelligence",
+   "format": "compare",
+   "linkpos": "root",
+   "title": "TikTok Unveils Buy Direct Checkout and AI Shopping Assistant",
    "score": 0,
    "likes": 0,
    "reposts": 0,
