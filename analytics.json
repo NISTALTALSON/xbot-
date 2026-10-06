@@ -13,7 +13,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-06T14:31:31.579477+00:00"
+   "checked": "2026-10-06T19:53:04.840519+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx3bh4njgp26",
@@ -28,7 +28,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-06T14:31:31.579495+00:00"
+   "checked": "2026-10-06T19:53:04.840538+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx4ml4bfll22",
@@ -43,7 +43,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-06T14:31:31.579499+00:00"
+   "checked": "2026-10-06T19:53:04.840542+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx5lisvuxb26",
@@ -53,12 +53,12 @@
    "format": "compare",
    "linkpos": "root",
    "title": "TikTok Unveils Buy Direct Checkout and AI Shopping Assistant",
-   "score": 0,
-   "likes": 0,
+   "score": 1,
+   "likes": 1,
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-06T14:31:31.579502+00:00"
+   "checked": "2026-10-06T19:53:04.840546+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx6waeslts2t",
@@ -73,7 +73,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-06T14:31:31.579505+00:00"
+   "checked": "2026-10-06T19:53:04.840549+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx7nhc4lwq2q",
@@ -83,6 +83,21 @@
    "format": "builder",
    "linkpos": "root",
    "title": "Tech Mahindra Rolls Out Build with Gemini to 12,500+ Associates",
+   "score": 1,
+   "likes": 1,
+   "reposts": 0,
+   "replies": 0,
+   "quotes": 0,
+   "checked": "2026-10-06T19:53:04.840552+00:00"
+  },
+  {
+   "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxa7gd4lyb22",
+   "ts": "2026-10-06T19:53:01.047464+00:00",
+   "hour": 19,
+   "category": "artificial_intelligence",
+   "format": "builder",
+   "linkpos": "root",
+   "title": "Mistral AI Releases Mistral Large 4 (Le Chonk): A 1.05T Parameter Multimodal MoE",
    "score": 0,
    "likes": 0,
    "reposts": 0,
