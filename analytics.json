@@ -13,7 +13,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-06T19:53:04.840519+00:00"
+   "checked": "2026-10-07T05:57:26.249820+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx3bh4njgp26",
@@ -28,7 +28,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-06T19:53:04.840538+00:00"
+   "checked": "2026-10-07T05:57:26.249835+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx4ml4bfll22",
@@ -43,7 +43,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-06T19:53:04.840542+00:00"
+   "checked": "2026-10-07T05:57:26.249840+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx5lisvuxb26",
@@ -58,7 +58,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-06T19:53:04.840546+00:00"
+   "checked": "2026-10-07T05:57:26.249843+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx6waeslts2t",
@@ -73,7 +73,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-06T19:53:04.840549+00:00"
+   "checked": "2026-10-07T05:57:26.249877+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx7nhc4lwq2q",
@@ -88,7 +88,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-06T19:53:04.840552+00:00"
+   "checked": "2026-10-07T05:57:26.249882+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxa7gd4lyb22",
@@ -98,6 +98,21 @@
    "format": "builder",
    "linkpos": "root",
    "title": "Mistral AI Releases Mistral Large 4 (Le Chonk): A 1.05T Parameter Multimodal MoE",
+   "score": 1,
+   "likes": 1,
+   "reposts": 0,
+   "replies": 0,
+   "quotes": 0,
+   "checked": "2026-10-07T05:57:26.249884+00:00"
+  },
+  {
+   "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxbb6xzvbc26",
+   "ts": "2026-10-07T05:57:21.752964+00:00",
+   "hour": 5,
+   "category": "artificial_intelligence",
+   "format": "release",
+   "linkpos": "root",
+   "title": "llm-mistral 0.16",
    "score": 0,
    "likes": 0,
    "reposts": 0,
