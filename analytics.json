@@ -13,7 +13,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T13:26:45.070390+00:00"
+   "checked": "2026-10-08T19:27:51.779826+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx3bh4njgp26",
@@ -28,7 +28,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T13:26:45.070405+00:00"
+   "checked": "2026-10-08T19:27:51.779836+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx4ml4bfll22",
@@ -43,7 +43,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T13:26:45.070408+00:00"
+   "checked": "2026-10-08T19:27:51.779840+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx5lisvuxb26",
@@ -58,7 +58,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T13:26:45.070410+00:00"
+   "checked": "2026-10-08T19:27:51.779844+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx6waeslts2t",
@@ -73,7 +73,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T13:26:45.070413+00:00"
+   "checked": "2026-10-08T19:27:51.779847+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx7nhc4lwq2q",
@@ -88,7 +88,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T13:26:45.070415+00:00"
+   "checked": "2026-10-08T19:27:51.779849+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxa7gd4lyb22",
@@ -103,7 +103,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T13:26:45.070417+00:00"
+   "checked": "2026-10-08T19:27:51.779852+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxbb6xzvbc26",
@@ -118,7 +118,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T13:26:45.070420+00:00"
+   "checked": "2026-10-08T19:27:51.779854+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxbzxgwq7722",
@@ -133,7 +133,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T13:26:45.070421+00:00"
+   "checked": "2026-10-08T19:27:51.779857+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxcor7i32i2c",
@@ -148,7 +148,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T13:26:45.070423+00:00"
+   "checked": "2026-10-08T19:27:51.779860+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxdrukxsci2g",
@@ -158,12 +158,12 @@
    "format": "compare",
    "linkpos": "root",
    "title": "Claude Haiku 5.5",
-   "score": 0,
-   "likes": 0,
+   "score": 1,
+   "likes": 1,
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T13:26:45.070425+00:00"
+   "checked": "2026-10-08T19:27:51.779863+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxekrbbpaw25",
@@ -173,6 +173,21 @@
    "format": "builder",
    "linkpos": "root",
    "title": "[AINews] Claude Haiku 5.5",
+   "score": 1,
+   "likes": 1,
+   "reposts": 0,
+   "replies": 0,
+   "quotes": 0,
+   "checked": "2026-10-08T19:27:51.779865+00:00"
+  },
+  {
+   "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxf6wyhl4r2p",
+   "ts": "2026-10-08T19:27:45.691610+00:00",
+   "hour": 19,
+   "category": "artificial_intelligence",
+   "format": "take",
+   "linkpos": "root",
+   "title": "Google brings agentic AI to Gemini, starting with businesses",
    "score": 0,
    "likes": 0,
    "reposts": 0,
