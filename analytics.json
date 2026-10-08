@@ -13,7 +13,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T06:01:11.185476+00:00"
+   "checked": "2026-10-08T13:26:45.070390+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx3bh4njgp26",
@@ -28,7 +28,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T06:01:11.185495+00:00"
+   "checked": "2026-10-08T13:26:45.070405+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx4ml4bfll22",
@@ -43,7 +43,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T06:01:11.185500+00:00"
+   "checked": "2026-10-08T13:26:45.070408+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx5lisvuxb26",
@@ -58,7 +58,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T06:01:11.185504+00:00"
+   "checked": "2026-10-08T13:26:45.070410+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx6waeslts2t",
@@ -73,7 +73,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T06:01:11.185508+00:00"
+   "checked": "2026-10-08T13:26:45.070413+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx7nhc4lwq2q",
@@ -88,7 +88,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T06:01:11.185511+00:00"
+   "checked": "2026-10-08T13:26:45.070415+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxa7gd4lyb22",
@@ -103,7 +103,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T06:01:11.185514+00:00"
+   "checked": "2026-10-08T13:26:45.070417+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxbb6xzvbc26",
@@ -118,7 +118,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T06:01:11.185517+00:00"
+   "checked": "2026-10-08T13:26:45.070420+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxbzxgwq7722",
@@ -133,7 +133,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T06:01:11.185521+00:00"
+   "checked": "2026-10-08T13:26:45.070421+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxcor7i32i2c",
@@ -148,7 +148,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T06:01:11.185523+00:00"
+   "checked": "2026-10-08T13:26:45.070423+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxdrukxsci2g",
@@ -158,6 +158,21 @@
    "format": "compare",
    "linkpos": "root",
    "title": "Claude Haiku 5.5",
+   "score": 0,
+   "likes": 0,
+   "reposts": 0,
+   "replies": 0,
+   "quotes": 0,
+   "checked": "2026-10-08T13:26:45.070425+00:00"
+  },
+  {
+   "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxekrbbpaw25",
+   "ts": "2026-10-08T13:26:38.733244+00:00",
+   "hour": 13,
+   "category": "artificial_intelligence",
+   "format": "builder",
+   "linkpos": "root",
+   "title": "[AINews] Claude Haiku 5.5",
    "score": 0,
    "likes": 0,
    "reposts": 0,
