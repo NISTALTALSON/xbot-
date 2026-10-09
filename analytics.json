@@ -13,7 +13,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T19:27:51.779826+00:00"
+   "checked": "2026-10-09T06:06:55.569120+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx3bh4njgp26",
@@ -28,7 +28,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T19:27:51.779836+00:00"
+   "checked": "2026-10-09T06:06:55.569136+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx4ml4bfll22",
@@ -43,7 +43,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T19:27:51.779840+00:00"
+   "checked": "2026-10-09T06:06:55.569140+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx5lisvuxb26",
@@ -58,7 +58,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T19:27:51.779844+00:00"
+   "checked": "2026-10-09T06:06:55.569143+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx6waeslts2t",
@@ -73,7 +73,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T19:27:51.779847+00:00"
+   "checked": "2026-10-09T06:06:55.569145+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mx7nhc4lwq2q",
@@ -88,7 +88,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T19:27:51.779849+00:00"
+   "checked": "2026-10-09T06:06:55.569148+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxa7gd4lyb22",
@@ -103,7 +103,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T19:27:51.779852+00:00"
+   "checked": "2026-10-09T06:06:55.569151+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxbb6xzvbc26",
@@ -118,7 +118,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T19:27:51.779854+00:00"
+   "checked": "2026-10-09T06:06:55.569153+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxbzxgwq7722",
@@ -133,7 +133,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T19:27:51.779857+00:00"
+   "checked": "2026-10-09T06:06:55.569156+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxcor7i32i2c",
@@ -148,7 +148,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T19:27:51.779860+00:00"
+   "checked": "2026-10-09T06:06:55.569159+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxdrukxsci2g",
@@ -163,7 +163,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T19:27:51.779863+00:00"
+   "checked": "2026-10-09T06:06:55.569161+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxekrbbpaw25",
@@ -178,7 +178,7 @@
    "reposts": 0,
    "replies": 0,
    "quotes": 0,
-   "checked": "2026-10-08T19:27:51.779865+00:00"
+   "checked": "2026-10-09T06:06:55.569163+00:00"
   },
   {
    "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxf6wyhl4r2p",
@@ -188,6 +188,21 @@
    "format": "take",
    "linkpos": "root",
    "title": "Google brings agentic AI to Gemini, starting with businesses",
+   "score": 1,
+   "likes": 1,
+   "reposts": 0,
+   "replies": 0,
+   "quotes": 0,
+   "checked": "2026-10-09T06:06:55.569166+00:00"
+  },
+  {
+   "uri": "at://did:plc:skxhoh2rbegclv5fsqwenun4/app.bsky.feed.post/3mxgcnrlmdj2c",
+   "ts": "2026-10-09T06:06:51.214061+00:00",
+   "hour": 6,
+   "category": "artificial_intelligence",
+   "format": "plain",
+   "linkpos": "root",
+   "title": "NVIDIA PivotOPD Teaches Multi-Turn AI Agents to Recover From Pivotal Mistakes",
    "score": 0,
    "likes": 0,
    "reposts": 0,
