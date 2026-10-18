@@ -1613,6 +1613,9 @@ def main():
             image_url   = entry.get('image_url') or fetch_og_image(link)
             if image_url:
                 image_bytes = download_image(image_url)
+                if image_bytes and quality is not None:
+                    # re-encode to a Bluesky-safe JPEG; tiny logos/icons come back None and are dropped
+                    image_bytes = quality.prep_image(image_bytes)
                 if image_bytes:
                     print(f"   🖼️  Image: {len(image_bytes)//1024}KB")
 
