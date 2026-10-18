@@ -1101,10 +1101,20 @@ def bsky_like(uri: str, cid: str, session: dict) -> bool:
         return False
 
 def bsky_reply(text: str, parent_uri: str, parent_cid: str,
-               root_uri: str, root_cid: str, session: dict) -> bool:
+               root_uri: str, root_cid: str, session: dict, embed=None):
+    """Posts a reply. Returns (uri, cid) on success (truthy) or None, so callers can chain a thread."""
     try:
         # Build facets for reply text
         facets = []
+        for match in re.finditer(r'https?://\S+', text):
+            url   = match.group()
+            start = len(text[:match.start()].encode('utf-8'))
+            end   = len(text[:match.end()].encode('utf-8'))
+            facets.append({
+                "$type": "app.bsky.richtext.facet",
+                "index": {"byteStart": start, "byteEnd": end},
+                "features": [{"$type": "app.bsky.richtext.facet#link", "uri": url}]
+            })
         for match in re.finditer(r'#(\w+)', text):
             tag   = match.group(1)
             start = len(text[:match.start()].encode('utf-8'))
@@ -1127,6 +1137,8 @@ def bsky_reply(text: str, parent_uri: str, parent_cid: str,
         }
         if facets:
             record["facets"] = facets
+        if embed:
+            record["embed"] = embed
 
         r = requests.post(
             f"{BSKY_BASE}/com.atproto.repo.createRecord",
@@ -1135,10 +1147,21 @@ def bsky_reply(text: str, parent_uri: str, parent_cid: str,
             timeout=15
         )
         r.raise_for_status()
-        return True
+        data = r.json()
+        return data.get("uri"), data.get("cid")
     except Exception as e:
         print(f"   Reply error: {e}")
-        return False
+        return None
+
+
+def bsky_link_card(entry: dict, thumb_bytes, session: dict):
+    """External-link embed (title + thumbnail card) for the source post."""
+    ext = {"uri": entry["link"], "title": clean_title(entry["title"])[:300], "description": entry.get("source", "")[:200]}
+    if thumb_bytes:
+        blob = bsky_upload_blob(thumb_bytes, session)
+        if blob:
+            ext["thumb"] = blob
+    return {"$type": "app.bsky.embed.external", "external": ext}
 
 def bsky_search_posts(query: str, limit: int = 25, session=None):
     try:
@@ -1560,12 +1583,24 @@ def main():
             if quality is not None and v2:
                 quality.send_x_draft(v2, entry, fmt, '', dry=dry_run, body_text=body_text)
 
+            # v6: Bluesky gets a native mini-article thread
+            t3 = quality.generate_thread(title, body_text, category, fmt or 'take') if quality is not None else None
+            if t3:
+                print(f"   [v6] thread ready | hook: {t3['hook']}")
+            else:
+                print('   [v6] thread generation failed - using the single-post path')
+
             if dry_run:
                 prev = (quality.compose_post(v2, entry, HASHTAGS.get(category, ''), count_graphemes,
                                              truncate_to_graphemes, BSKY_MAX_GRAPHEMES,
                                              link_in_root=(linkpos != 'reply'))
                         if v2 else build_post_text(entry, summary))
                 print('   ---- DRY RUN PREVIEW (nothing posted) ----')
+                if t3:
+                    for p in quality.compose_thread(t3, entry, HASHTAGS.get(category, ''), count_graphemes,
+                                                    truncate_to_graphemes, BSKY_MAX_GRAPHEMES, linkpos):
+                        print(f"   [{p['kind']}] ({count_graphemes(p['text'])})\n{p['text']}\n   ..")
+                    continue
                 print(prev)
                 rt = quality.reply_text(v2, entry, linkpos, count_graphemes, truncate_to_graphemes, 290)
                 if rt:
@@ -1584,7 +1619,29 @@ def main():
             # Post to platforms
             successes = []
 
-            if 'bluesky' in platforms:
+            if 'bluesky' in platforms and t3:
+                posts = quality.compose_thread(t3, entry, HASHTAGS.get(category, ''), count_graphemes,
+                                               truncate_to_graphemes, BSKY_MAX_GRAPHEMES, linkpos)
+                hero = (quality.prep_image(image_bytes) if image_bytes else None) or quality.make_card(t3['hook'], entry['source'])
+                blob = bsky_upload_blob(hero, bsky_session) if hero else None
+                record = build_bluesky_record(posts[0]['text'], blob, alt=t3['alt'] or title[:280])
+                uri, cid = bsky_post(record, bsky_session)
+                if uri:
+                    successes.append('Bluesky')
+                    if quality is not None:
+                        quality.record_post(uri, category, fmt or 'take', title, linkpos)
+                    parent_uri, parent_cid = uri, cid
+                    for p in posts[1:]:
+                        time.sleep(2)
+                        embed = bsky_link_card(entry, quality.prep_image(image_bytes) if image_bytes else None,
+                                               bsky_session) if p['kind'] == 'source' else None
+                        res = bsky_reply(p['text'], parent_uri, parent_cid, uri, cid, bsky_session, embed=embed)
+                        if res:
+                            parent_uri, parent_cid = res
+                        else:
+                            break
+                    print(f"   ✅ Bluesky thread ({len(posts)} posts): {uri}")
+            elif 'bluesky' in platforms:
                 post_text = (quality.compose_post(v2, entry, HASHTAGS.get(category, ''), count_graphemes,
                                                   truncate_to_graphemes, BSKY_MAX_GRAPHEMES,
                                              link_in_root=(linkpos != 'reply'))

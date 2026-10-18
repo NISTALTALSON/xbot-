@@ -244,7 +244,11 @@ def pick_format(entry):
 
 
 def pick_linkpos():
-    """A/B test: link in the main post vs. in the self-reply (external links often cut reach)."""
+    """Link in the root post or in the last reply. Every tracked post so far had the link in the root and
+    the reply variant was never tried, so favour 'reply' until it has enough samples to compare."""
+    stats = _avg_by(_load()["posts"], "linkpos")
+    if stats.get("reply", (0, 0))[1] < 8:
+        return "reply" if random.random() < 0.7 else "root"
     return _weighted_pick("linkpos", ["root", "reply"])
 
 
@@ -517,3 +521,148 @@ def send_x_draft(v2, entry, fmt, hashtags, dry=False, body_text=""):
         _deliver(m)
         if i < len(msgs) - 1:
             time.sleep(2)  # CallMeBot asks for at most one message per second
+
+
+# ---------------------------------------------------------------- v6: Bluesky thread (hook -> article -> question -> source)
+def generate_thread(title, body_text, category, fmt):
+    """A short native article for Bluesky: scroll-stopping hook + payoff, 3 body posts, closing question."""
+    if not body_text:
+        return None
+    prompt = (
+        "You write a Bluesky account for AI engineers and developers. Turn the story below into a short native "
+        "THREAD that reads like a mini article, so people get the full value without clicking anything.\n"
+        f"Category: {category.replace('_', ' ')}\nHeadline: {title}\n"
+        f"Article text:\n{body_text[:6000]}\n\n"
+        f"Angle: {FORMATS[fmt]}\n\n"
+        'Return JSON: {"hook": "..", "payoff": "..", "posts": ["..", "..", ".."], "question": "..", "alt": ".."}\n'
+        "- hook: max 85 chars. A concrete fact, number, name or consequence from the article that makes a reader "
+        "stop. It must work alone. No clickbait, no 'BREAKING', no emoji.\n"
+        "- payoff: max 170 chars. Why this matters to someone building or using AI. It teases the thread without "
+        "repeating the hook.\n"
+        "- posts: exactly 3 replies, each max 270 chars, each adds ONE NEW fact or insight in this order: "
+        "(1) what actually happened or changed, (2) how it works or the key number/limit/cost, "
+        "(3) who it affects and what to do or watch next. Short lines are fine.\n"
+        "- question: max 220 chars. A one-line takeaway, then ONE specific question that builders can answer from "
+        "their own experience. Never 'thoughts?', never 'what do you think'.\n"
+        "- alt: max 200 chars, plain description of a card image that carries the hook (for screen readers).\n"
+        "Rules: use ONLY facts present in the article text; never invent numbers, names, versions, CVE ids or dates; "
+        "if unsure, leave it out. No URLs, no hashtags, no source names. No engagement bait ('repost if', "
+        "'like if', 'follow for more'). No hype words (revolutionary, game-changing, groundbreaking). "
+        "Plain words, active voice, a sharp human tone. At most one emoji in the whole thread."
+    )
+    raw = _gemini_json(prompt)
+    if not raw:
+        return None
+    raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M).strip()
+    try:
+        d = json.loads(raw)
+    except Exception:
+        return None
+    hook = str(d.get("hook", "")).strip()
+    payoff = str(d.get("payoff", "")).strip()
+    posts = [str(p).strip() for p in d.get("posts", []) if len(str(p).strip()) >= 30][:3]
+    question = str(d.get("question", "")).strip()
+    if len(hook) < 15 or len(payoff) < 20 or len(posts) < 2 or len(question) < 20:
+        return None
+    low = " ".join([hook, payoff, question] + posts).lower()
+    if any(x in low for x in ("repost if", "like if", "follow for more", "retweet", "thoughts?", "what do you think")):
+        return None
+    return {"hook": hook[:100], "payoff": payoff[:200], "posts": posts, "question": question[:240],
+            "alt": str(d.get("alt", "") or hook)[:250]}
+
+
+def _fit(text, limit, count, trunc):
+    if count(text) <= limit:
+        return text
+    cut = trunc(text, limit)
+    end = max(cut.rfind(c) for c in ".!?")
+    return cut[:end + 1] if end >= 40 else cut.rsplit(" ", 1)[0].rstrip(",;:- ") + "..."
+
+
+def compose_thread(t, entry, hashtags, count, trunc, limit, linkpos):
+    """Returns [{'text','kind'}]: root, body posts, question, and (if linkpos == 'reply') a source post."""
+    tag = (hashtags or "").split()[0] if hashtags else ""
+    link = entry["link"]
+    foot = "\n".join(x for x in (tag, link if linkpos == "root" else "") if x)
+    root = f"{t['hook']}\n\n{t['payoff']}"
+    if foot and count(root) + count(foot) + 2 > limit:
+        root = _fit(root, limit - count(foot) - 2, count, trunc)
+    root = root + (f"\n\n{foot}" if foot else "")
+    out = [{"text": root, "kind": "root"}]
+    for p in t["posts"]:
+        out.append({"text": _fit(p, limit, count, trunc), "kind": "body"})
+    out.append({"text": _fit(t["question"], limit, count, trunc), "kind": "question"})
+    if linkpos == "reply":
+        out.append({"text": f"Source: {entry['source']}\n{link}", "kind": "source"})
+    return out
+
+
+# ---------------------------------------------------------------- v6: images
+def prep_image(raw, max_w=1200, max_bytes=900_000):
+    """Re-encode any downloaded image to a JPEG Bluesky will accept (<1MB). None if unusable or tiny."""
+    try:
+        from io import BytesIO
+        from PIL import Image
+        im = Image.open(BytesIO(raw)).convert("RGB")
+        if im.width < 400 or im.height < 200:
+            return None
+        if im.width > max_w:
+            im = im.resize((max_w, int(im.height * max_w / im.width)))
+        for qual in (88, 78, 68, 58):
+            buf = BytesIO()
+            im.save(buf, "JPEG", quality=qual, optimize=True)
+            if buf.tell() <= max_bytes:
+                return buf.getvalue()
+    except Exception as ex:
+        print(f"   [v6] image prep failed: {str(ex)[:60]}")
+    return None
+
+
+def make_card(hook, source=""):
+    """Clean 1200x630 headline card used when the article has no usable image."""
+    try:
+        from io import BytesIO
+        from PIL import Image, ImageDraw, ImageFont
+        W, H = 1200, 630
+        im = Image.new("RGB", (W, H), (11, 18, 32))
+        d = ImageDraw.Draw(im)
+        d.rectangle([0, 0, 14, H], fill=(56, 189, 248))
+        fonts = ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+                 "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf", "DejaVuSans-Bold.ttf"]
+
+        def font(sz):
+            for f in fonts:
+                try:
+                    return ImageFont.truetype(f, sz)
+                except Exception:
+                    pass
+            return ImageFont.load_default()
+
+        size = 66
+        while size >= 40:
+            f = font(size)
+            lines, cur = [], ""
+            for w in hook.split():
+                t = (cur + " " + w).strip()
+                if d.textlength(t, font=f) <= W - 160:
+                    cur = t
+                else:
+                    lines.append(cur)
+                    cur = w
+            lines.append(cur)
+            if len(lines) * (size + 16) <= H - 230:
+                break
+            size -= 4
+        y = 90
+        for ln in lines:
+            d.text((80, y), ln, font=f, fill=(241, 245, 249))
+            y += size + 16
+        d.text((80, H - 110), "AISecurityDaily", font=font(34), fill=(56, 189, 248))
+        if source:
+            d.text((80, H - 62), source[:60], font=font(26), fill=(148, 163, 184))
+        buf = BytesIO()
+        im.save(buf, "JPEG", quality=88)
+        return buf.getvalue()
+    except Exception as ex:
+        print(f"   [v6] card failed: {str(ex)[:60]}")
+        return None
