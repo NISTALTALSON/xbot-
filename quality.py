@@ -319,7 +319,7 @@ def generate_post(title, body_text, category, fmt):
 
 def compose_post(v2, entry, hashtags, count, trunc, limit, link_in_root=True):
     link = entry["link"]
-    tag = (hashtags or "").split()[0] if hashtags else ""
+    tag = ""  # hashtags removed on purpose
     parts_footer = [x for x in (tag, link if link_in_root else "") if x]
     footer = "\n".join(parts_footer)
     hook, body = v2["hook"], v2["body"]
@@ -581,7 +581,7 @@ def _fit(text, limit, count, trunc):
 
 def compose_thread(t, entry, hashtags, count, trunc, limit, linkpos):
     """Returns [{'text','kind'}]: root, body posts, question, and (if linkpos == 'reply') a source post."""
-    tag = (hashtags or "").split()[0] if hashtags else ""
+    tag = ""  # hashtags removed on purpose
     link = entry["link"]
     foot = "\n".join(x for x in (tag, link if linkpos == "root" else "") if x)
     root = f"{t['hook']}\n\n{t['payoff']}"

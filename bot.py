@@ -949,11 +949,11 @@ def build_post_text(entry: dict, summary: str) -> str:
     title    = clean_title(entry['title'])
     link     = entry['link']
     source   = entry['source'][:30]  # cap source name
-    hashtags = HASHTAGS.get(category, "#Tech")
+    hashtags = ""  # hashtags removed on purpose
     emoji    = random.choice(LEAD_EMOJIS.get(category, ['📰']))
 
     # Footer is fixed — calculate its length first
-    footer = f"\n{hashtags}\n{source} · {link}"
+    footer = f"\n{source} · {link}"
     header = f"{emoji} {title}"
 
     # Budget for body
@@ -973,7 +973,7 @@ def build_post_text(entry: dict, summary: str) -> str:
     # Final safety check
     if count_graphemes(post) > BSKY_MAX_GRAPHEMES:
         # Nuclear option: title + link only
-        post = f"{emoji} {truncate_to_graphemes(title, 200)}\n\n{hashtags}\n{link}"
+        post = f"{emoji} {truncate_to_graphemes(title, 200)}\n\n{link}"
 
     return post
 
@@ -1313,7 +1313,6 @@ def format_telegram(entry: dict, summary: str) -> str:
     return (
         f"{emoji} <b>{title}</b>\n\n"
         f"{body}\n\n"
-        f"{hashtags}\n\n"
         f"Source: {entry['source']}\n"
         f"<a href=\"{link}\">Read full article ↗</a>"
     )
@@ -1347,10 +1346,10 @@ def format_mastodon(entry: dict, summary: str) -> str:
     hashtags = HASHTAGS.get(entry['category'], "#Tech")
     emoji    = random.choice(LEAD_EMOJIS.get(entry['category'], ['📰']))
     body     = summary if summary else title
-    post = f"{emoji} {title}\n\n{body}\n\n{hashtags}\n\nSource: {entry['source']}\n{link}"
+    post = f"{emoji} {title}\n\n{body}\n\nSource: {entry['source']}\n{link}"
     if len(post) > 490:
-        overhead = len(f"{emoji} {title}\n\n\n\n{hashtags}\n\nSource: {entry['source']}\n{link}") + 3
-        post = f"{emoji} {title}\n\n{body[:max(20, 490 - overhead)]}…\n\n{hashtags}\n\nSource: {entry['source']}\n{link}"
+        overhead = len(f"{emoji} {title}\n\n\n\nSource: {entry['source']}\n{link}") + 3
+        post = f"{emoji} {title}\n\n{body[:max(20, 490 - overhead)]}…\n\nSource: {entry['source']}\n{link}"
     return post
 
 def post_to_mastodon(text: str, token: str, instance="mastodon.social",
