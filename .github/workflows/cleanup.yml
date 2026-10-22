@@ -1,0 +1,24 @@
+name: One-off cleanup - delete zero-engagement posts
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/cleanup.yml'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests
+      - name: Delete zero-engagement posts
+        env:
+          PYTHONIOENCODING: utf-8
+          BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+        run: python -u cleanup_zero.py --delete
