@@ -16,6 +16,8 @@ import re
 import time
 from datetime import datetime, timezone
 
+from urllib.parse import urlparse
+
 import requests
 
 ANALYTICS_FILE = "analytics.json"
@@ -66,10 +68,14 @@ HOT = {
     "data breach": 4, "breach": 3, "supply chain": 4, "backdoor": 3, "vulnerability": 2,
     "patch": 2, "malware": 2, "jailbreak": 3, "prompt injection": 4, "ai agent": 2,
     "llm": 2, "leak": 2, "cisa": 3, "nation-state": 3, "apt": 2, "botnet": 2, "exploit": 2,
+    "outage": 3, "offline": 2, "emergency": 3, "nsa": 3, "enisa": 3, "ncsc": 3, "mass exploitation": 5,
+    "emergency patch": 5, "web shell": 3, "wordpress": 2, "critical flaw": 3, "critical vulnerabilit": 3,
+    "taken down": 2, "shut down": 2, "worldwide": 1, "millions of": 2,
 }
 JUNK = ("sponsored", "webinar", "podcast", "weekly recap", "week in review", "newsletter",
-        "top 10", "top 5", "best of", "job", "hiring", "register now", "giveaway")
-STOP = set("the a an of to in on for and or is are was be by with from at as it its this that new how why what after over into".split())
+        "top 10", "top 5", "best of", "job", "hiring", "register now", "giveaway", "[ainews]", "ainews:")
+STOP = set("the a an of to in on for and or is are was be by with from at as it its this that new how why what after over into "
+           "has can you and use not but all one get via who may now out say says just than more will".split())
 
 
 ACTIVE_START, ACTIVE_END = 3, 21  # UTC hours the bot may post in
@@ -92,7 +98,7 @@ def should_post_now(now=None):
 
 # ---------------------------------------------------------------- ranking
 def _tokens(title):
-    return {w for w in re.findall(r"[a-z0-9\-]+", title.lower()) if len(w) > 3 and w not in STOP}
+    return {w for w in re.findall(r"[a-z0-9\-]+", title.lower()) if len(w) >= 3 and w not in STOP}
 
 
 def _age_hours(entry):
@@ -116,10 +122,94 @@ def story_kind(entry):
     return "other"
 
 
+def _domain(e):
+    try:
+        return urlparse(e.get("link", "")).netloc.lower().replace("www.", "")
+    except Exception:
+        return ""
+
+
+def _same_story(a, b, ratio=0.5):
+    sh = a & b
+    return len(sh) >= 2 and len(sh) / max(1, min(len(a), len(b))) >= ratio
+
+
+def _recent_posted(hours=36):
+    now = time.time()
+    out = []
+    for p in _load()["posts"]:
+        try:
+            age = (now - datetime.fromisoformat(p["ts"]).timestamp()) / 3600
+        except Exception:
+            continue
+        if age <= hours:
+            out.append((age, _tokens(p.get("title", ""))))
+    return out
+
+
+def breaking_gap_ok(min_hours=1.0):
+    """Breaking news may skip the normal 3.5h gap / night window, but never spams: 1h minimum."""
+    posts = _load()["posts"]
+    if not posts:
+        return True
+    gap = (datetime.now(timezone.utc) - datetime.fromisoformat(posts[-1]["ts"])).total_seconds() / 3600
+    return gap >= min_hours
+
+
+def _breaking_clusters(entries, toks, recent):
+    """Group the same story across outlets. Several independent outlets in the last 36h on a hot
+    topic = breaking news. Returns (breaking flags, indexes to drop because we already covered it)."""
+    n = len(entries)
+    parent = list(range(n))
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    fresh = []
+    for e in entries:
+        a = _age_hours(e)
+        fresh.append(a is None or a <= 36)
+    for i in range(n):
+        if not fresh[i] or not toks[i]:
+            continue
+        for j in range(i + 1, n):
+            if fresh[j] and toks[j] and _same_story(toks[i], toks[j], 0.3):
+                parent[find(j)] = find(i)
+    groups = {}
+    for i in range(n):
+        if fresh[i]:
+            groups.setdefault(find(i), []).append(i)
+    flags, drop = [False] * n, set()
+    for members in groups.values():
+        doms = {_domain(entries[i]) for i in members} - {""}
+        text = " ".join(entries[i]["title"].lower() for i in members)
+        heat = sum(w for k, w in HOT.items() if k in text)
+        if not ((len(doms) >= 3 and heat >= 4) or (len(doms) >= 4 and _ai_hits(text) >= 6)):
+            continue
+        covered_recently = any(age < 8 and rt and _same_story(toks[m], rt, 0.3)
+                               for m in members for age, rt in recent)
+        if covered_recently:
+            drop.update(members)  # already posted this story in the last 8h; do not spam it
+            continue
+        for i in members:
+            flags[i] = True
+        print(f"   [v5] BREAKING cluster: {len(doms)} outlets, heat {heat}: {entries[members[0]]['title'][:60]}")
+    return flags, drop
+
+
 def rank_entries(entries):
     toks = [_tokens(e["title"]) for e in entries]
+    recent = _recent_posted(36)
+    breaking, drop = _breaking_clusters(entries, toks, recent)
     scored = []
     for i, e in enumerate(entries):
+        if i in drop:
+            continue
+        if not breaking[i] and any(rt and _same_story(toks[i], rt, 0.5) for _, rt in recent):
+            continue  # same topic as something we posted in the last 36h
         text = (e["title"] + " " + (e.get("summary") or "")[:300]).lower()
         link = e.get("link", "")
         s = sum(w for k, w in HOT.items() if k in text)
@@ -127,7 +217,7 @@ def rank_entries(entries):
         s += min(14, ai)
         if e.get("category") in AI_CATS:
             s += 6
-        elif ai < 3:
+        elif ai < 3 and not breaking[i]:
             s -= 8  # off-topic for an AI-focused account unless it is a huge story
         if "arxiv.org" in link and ai < 6:
             s -= 5
@@ -146,7 +236,12 @@ def rank_entries(entries):
         s += min(9, 3 * same)  # several outlets covering it = it matters
         if re.search(r"\d", e["title"]):
             s += 1
-        scored.append((s + random.uniform(0, 2), e))
+        if breaking[i]:
+            s += 40
+            e["_breaking"] = True
+        s += random.uniform(0, 2)
+        e["_score"] = s
+        scored.append((s, e))
     scored.sort(key=lambda x: x[0], reverse=True)
     print("   [v5] top stories by score:")
     for s, e in scored[:3]:

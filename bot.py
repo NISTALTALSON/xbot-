@@ -36,6 +36,12 @@ except Exception as _qe:
     print(f'quality module unavailable, running v4 behaviour: {_qe}')
     quality = None
 
+try:
+    import brain
+except Exception as _be:
+    print(f'brain module unavailable, using the classic scheduler: {_be}')
+    brain = None
+
 # ─────────────────────────────────────────────────────────────
 #  CONFIG
 # ─────────────────────────────────────────────────────────────
@@ -142,6 +148,10 @@ RSS_FEEDS = {
         "https://blog.malwarebytes.com/feed/",
         "https://www.cisa.gov/news.xml",
         "https://www.rapid7.com/blog/rss.xml",
+        "https://therecord.media/feed",
+        "https://www.theregister.com/security/headlines.atom",
+        "https://feeds.arstechnica.com/arstechnica/security",
+        "https://www.cisa.gov/cybersecurity-advisories/all.xml",
     ],
     'ethical_hacking': [
         "https://www.reddit.com/r/netsec/.rss",
@@ -173,6 +183,9 @@ RSS_FEEDS = {
         "https://www.fastcompany.com/rss.xml",
         "https://www.protocol.com/feed",
         "https://www.sifted.eu/feed",
+        "https://feeds.bbci.co.uk/news/technology/rss.xml",
+        "https://feeds.npr.org/1019/rss.xml",
+        "https://www.techradar.com/rss",
     ],
     'crypto_blockchain': [
         "https://cointelegraph.com/rss",
@@ -1436,7 +1449,7 @@ def fetch_news():
             try:
                 print(f"  [{n}/{total}] {url[:70]}")
                 feed = feedparser.parse(url)
-                for e in feed.entries[:5]:
+                for e in feed.entries[:8]:
                     all_entries.append({
                         'title':    e.get('title', 'No title'),
                         'link':     e.get('link', ''),
@@ -1465,11 +1478,11 @@ def main():
 
     dry_run   = os.environ.get('DRY_RUN') == '1'
     forced    = os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch' or dry_run
+    gate_ok, why = True, ""
     if quality is not None and not forced:
-        go, why = quality.should_post_now()
-        if not go:
-            print(f"Skipping this run: {why}")
-            return
+        gate_ok, why = quality.should_post_now()
+        if not gate_ok:
+            print(f"Normal posting gate closed ({why}) - will still post if there is breaking news")
 
     bsky_handle   = os.environ.get('BLUESKY_HANDLE')
     bsky_password = os.environ.get('BLUESKY_APP_PASSWORD')
@@ -1523,12 +1536,38 @@ def main():
 
     categories_posted = []
 
+    # ── The brain decides WHAT is worth saying and WHETHER now is the moment ──
+    verdict = None
+    if brain is not None and quality is not None and not forced:
+        try:
+            new_entries, verdict = brain.think(new_entries, all_entries=entries)
+            for line in verdict['log']:
+                print(f"   🧠 {line}")
+            if not verdict['fire']:
+                print(f"🧠 Holding fire: {verdict['why']}")
+                return
+            print(f"🧠 Speaking up: {verdict['why']}")
+            gate_ok = True
+        except Exception as _bex:
+            print(f"🧠 brain failed ({str(_bex)[:80]}), falling back to the classic scheduler")
+            verdict = None
+
     # ── Post ───────────────────────────────────────────────────
     if not new_entries:
         print("ℹ️  Nothing new to post this run.")
+        if not gate_ok:
+            return
     else:
         if quality is not None:
-            new_entries = quality.rank_entries(new_entries)
+            if verdict is None:
+                new_entries = quality.rank_entries(new_entries)
+                if not gate_ok:
+                    # classic scheduler outside its window: only breaking stories, never within 1h of the last post
+                    new_entries = [e for e in new_entries if e.get('_breaking')] if quality.breaking_gap_ok() else []
+                    if not new_entries:
+                        print(f"Skipping this run: {why}; no breaking story")
+                        return
+                    print("🚨 Breaking story - posting outside the normal schedule")
             to_post = new_entries[:1]
         else:
             random.shuffle(new_entries)
@@ -1678,6 +1717,8 @@ def main():
 
             if successes:
                 posted.append(entry['id'])
+                if brain is not None and verdict is not None:
+                    brain.after_post(entry)
                 # Save state immediately after each successful post
                 save_json(POSTED_FILE, posted[-MAX_HISTORY:])
                 print(f"   ✅ Posted → {', '.join(successes)}")
