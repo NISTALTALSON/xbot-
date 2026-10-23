@@ -42,6 +42,12 @@ except Exception as _be:
     print(f'brain module unavailable, using the classic scheduler: {_be}')
     brain = None
 
+try:
+    import editor
+except Exception as _ee:
+    print(f'editor module unavailable, rules only: {_ee}')
+    editor = None
+
 # ─────────────────────────────────────────────────────────────
 #  CONFIG
 # ─────────────────────────────────────────────────────────────
@@ -1543,6 +1549,16 @@ def main():
             new_entries, verdict = brain.think(new_entries, all_entries=entries)
             for line in verdict['log']:
                 print(f"   🧠 {line}")
+            if editor is not None:
+                try:
+                    ed = editor.review(new_entries, verdict)
+                    if ed:
+                        print(f"   📰 Editor: {ed['action']} (urgency {ed['urgency']}) - {ed['why']}")
+                        if ed['angle']:
+                            print(f"   📰 Angle: {ed['angle']}")
+                    new_entries, verdict = editor.apply(new_entries, verdict, ed)
+                except Exception as _eex:
+                    print(f"   📰 editor failed ({str(_eex)[:80]}), rules decide")
             if not verdict['fire']:
                 print(f"🧠 Holding fire: {verdict['why']}")
                 return
@@ -1612,7 +1628,11 @@ def main():
             if quality is not None:
                 fmt = quality.pick_format(entry)
                 linkpos = quality.pick_linkpos()
-                v2 = quality.generate_post(title, body_text, category, fmt)
+                _note = None
+                if entry.get('_editor_note') or entry.get('_related'):
+                    _note = {'angle': (entry.get('_editor_note') or {}).get('angle', ''),
+                             'related': entry.get('_related') or []}
+                v2 = quality.generate_post(title, body_text, category, fmt, note=_note)
                 if v2:
                     summary = v2['body']
                     print(f"   [v5] format={fmt} link={linkpos} | hook: {v2['hook']}")
@@ -1622,7 +1642,7 @@ def main():
                 quality.send_x_draft(v2, entry, fmt, '', dry=dry_run, body_text=body_text)
 
             # v6: Bluesky gets a native mini-article thread
-            t3 = quality.generate_thread(title, body_text, category, fmt or 'take') if quality is not None else None
+            t3 = quality.generate_thread(title, body_text, category, fmt or 'take', note=_note) if quality is not None else None
             if t3:
                 print(f"   [v6] thread ready | hook: {t3['hook']}")
             else:

@@ -143,8 +143,12 @@ def world_clusters(items):
         relevant = sum(w for k, w in Q.HOT.items() if k in text) >= 4 or Q._ai_hits(text) >= 6
         if len(core) >= 2 and relevant:
             rep = max(members, key=lambda i: len(items[i]["tokens"] & core))
+            titles = []
+            for i in sorted(members, key=lambda i: -len(items[i]["tokens"] & core)):
+                if items[i]["title"] not in titles:
+                    titles.append(items[i]["title"])
             out.append({"core": core, "outlets": len(outlets), "weight": sum(items[i]["weight"] for i in members),
-                        "title": items[rep]["title"]})
+                        "title": items[rep]["title"], "titles": titles[:6]})
     out.sort(key=lambda c: (c["outlets"], c["weight"]), reverse=True)
     return out[:12]
 
@@ -271,6 +275,7 @@ def think(new_entries, all_entries=None, persist=True):
         for c in clusters:
             if _match(toks, c["core"]):
                 e["_cluster"] = {"core": c["core"], "outlets": c["outlets"]}
+                e["_related"] = c["titles"]
                 if c["outlets"] >= 3:
                     sal += min(30.0, 3.0 * c["outlets"])
                     why.append(f"world story ({c['outlets']} outlets)")
@@ -308,8 +313,8 @@ def think(new_entries, all_entries=None, persist=True):
     for e in ranked[:4]:
         log.append(f"cand: {e['_sal']:5.1f} [{e['_why']}] {e['title'][:60]}")
 
+    gap = _hours_since_last_post(now)
     if ranked:
-        gap = _hours_since_last_post(now)
         fire, why = _fire(ranked[0], st, gap, now)
         v = min(ranked[0]["_sal"], 2 * max(10.0, st["best_ema"]))  # one huge story must not warp the baseline
         st["best_ema"] = 0.9 * st["best_ema"] + 0.1 * v
@@ -325,4 +330,5 @@ def think(new_entries, all_entries=None, persist=True):
     st["runs"] += 1
     if persist:
         save_state(st)
-    return ranked, {"fire": fire, "why": why, "log": log}
+    return ranked, {"fire": fire, "why": why, "log": log, "gap": gap,
+                    "world": [(c["title"], c["outlets"]) for c in clusters[:6]]}

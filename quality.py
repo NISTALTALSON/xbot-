@@ -389,15 +389,23 @@ def parse_post_json(raw):
     return out
 
 
-def generate_post(title, body_text, category, fmt):
+def generate_post(title, body_text, category, fmt, note=None):
+    related = (note or {}).get("related") or []
+    if not body_text and related:
+        body_text = "Headlines from several outlets on this story:\n" + "\n".join(related)
     if not body_text:
         return None
     want_fu = fmt in FOLLOWUP_FORMATS
+    extra = ""
+    if note and note.get("angle"):
+        extra += f"Editor's angle (build the post around this point): {note['angle']}\n"
+    if related and body_text and not body_text.startswith("Headlines from several"):
+        extra += "Other outlets' headlines on the same story (facts stated here are usable too):\n" + "\n".join(related[:5]) + "\n"
     prompt = (
         "You write for an AI news account on Bluesky covering new models, releases, tooling, research and AI security. "
         "Readers are AI engineers, ML practitioners, developers and curious tech people.\n"
         f"Category: {category.replace('_', ' ')}\nHeadline: {title}\n"
-        f"Article excerpt:\n{body_text[:3000]}\n\n"
+        f"Article excerpt:\n{body_text[:3000]}\n{extra}\n"
         f"Post format: {FORMATS[fmt]}\n\n"
         'Return JSON with keys "hook", "body"' + (', "followup"' if want_fu else "") + ".\n"
         '- "hook": first line, max 90 chars. Stop the scroll with a concrete fact, number, name or '
@@ -405,11 +413,41 @@ def generate_post(title, body_text, category, fmt):
         '- "body": 1-2 sentences, max 170 chars, the why-it-matters or the angle.\n'
         + ('- "followup": max 240 chars, 2-3 short numbered points a builder can act on or remember '
            '(what is new, limits or cost if stated, how to try or apply it). Facts from the excerpt only.\n' if want_fu else "")
-        + "\nRules: use ONLY facts present in the excerpt; never invent numbers, names, CVE ids or dates; "
+        + "\nRules: use ONLY facts present in the excerpt or the listed headlines; never invent numbers, names, CVE ids or dates; "
         "if unsure, leave it out. No URLs, hashtags or source names. Plain words, active voice, sound like "
         "a sharp AI engineer sharing what they just read, not a press release. Avoid hype words like revolutionary, game-changing or groundbreaking. At most one emoji in the whole post, only if it adds meaning."
     )
-    return parse_post_json(_gemini_json(prompt))
+    draft = parse_post_json(_gemini_json(prompt))
+    return _critique(draft, title, body_text, note) if draft else draft
+
+
+def _critique(draft, title, body_text, note):
+    """Second look by a harsher reader: is the hook specific, is every fact in the source, would an engineer
+    stop scrolling? Rewrites only when the draft is weak. Any failure keeps the original draft."""
+    try:
+        prompt = (
+            "You are a ruthless social-media editor for an AI and AI-security account. Judge this draft post.\n"
+            f"Headline: {title}\nSource material:\n{body_text[:2500]}\n"
+            + (f"Intended angle: {note['angle']}\n" if note and note.get("angle") else "")
+            + f"Draft JSON: {json.dumps(draft)}\n\n"
+            'Score 1-10 on: specific hook (concrete fact, not vague), every fact present in the source material, '
+            'a reason an engineer would stop scrolling, no hype words, no filler. '
+            'If the score is 8 or higher, return {"score": <n>} only. Otherwise return {"score": <n>, "hook": ..., '
+            '"body": ..., "followup": ...} with the same limits (hook max 90 chars, body max 170, followup max 240) '
+            "fixing the weaknesses, still using only facts from the source material."
+        )
+        d = json.loads(re.sub(r"^```(?:json)?|```$", "", (_gemini_json(prompt) or "").strip(), flags=re.M).strip())
+        if int(d.get("score", 10)) >= 8:
+            return draft
+        revised = parse_post_json(json.dumps(d))
+        if revised:
+            if "followup" in draft and "followup" not in revised:
+                revised["followup"] = draft["followup"]
+            print(f"   [v6] critic score {d.get('score')}: draft rewritten")
+            return revised
+    except Exception as ex:
+        print(f"   [v6] critic skipped: {str(ex)[:60]}")
+    return draft
 
 
 def compose_post(v2, entry, hashtags, count, trunc, limit, link_in_root=True):
@@ -619,15 +657,23 @@ def send_x_draft(v2, entry, fmt, hashtags, dry=False, body_text=""):
 
 
 # ---------------------------------------------------------------- v6: Bluesky thread (hook -> article -> question -> source)
-def generate_thread(title, body_text, category, fmt):
+def generate_thread(title, body_text, category, fmt, note=None):
     """A short native article for Bluesky: scroll-stopping hook + payoff, 3 body posts, closing question."""
+    related = (note or {}).get("related") or []
+    if not body_text and related:
+        body_text = "Headlines from several outlets on this story:\n" + "\n".join(related)
     if not body_text:
         return None
+    extra = ""
+    if note and note.get("angle"):
+        extra += f"Editor's angle (build the thread around this point): {note['angle']}\n"
+    if related and not body_text.startswith("Headlines from several"):
+        extra += "Other outlets' headlines on the same story (facts stated here are usable too):\n" + "\n".join(related[:5]) + "\n"
     prompt = (
         "You write a Bluesky account for AI engineers and developers. Turn the story below into a short native "
         "THREAD that reads like a mini article, so people get the full value without clicking anything.\n"
         f"Category: {category.replace('_', ' ')}\nHeadline: {title}\n"
-        f"Article text:\n{body_text[:6000]}\n\n"
+        f"Article text:\n{body_text[:6000]}\n{extra}\n"
         f"Angle: {FORMATS[fmt]}\n\n"
         'Return JSON: {"hook": "..", "payoff": "..", "posts": ["..", "..", ".."], "question": "..", "alt": ".."}\n'
         "- hook: max 85 chars. A concrete fact, number, name or consequence from the article that makes a reader "
@@ -640,7 +686,7 @@ def generate_thread(title, body_text, category, fmt):
         "- question: max 220 chars. A one-line takeaway, then ONE specific question that builders can answer from "
         "their own experience. Never 'thoughts?', never 'what do you think'.\n"
         "- alt: max 200 chars, plain description of a card image that carries the hook (for screen readers).\n"
-        "Rules: use ONLY facts present in the article text; never invent numbers, names, versions, CVE ids or dates; "
+        "Rules: use ONLY facts present in the article text or the listed headlines; never invent numbers, names, versions, CVE ids or dates; "
         "if unsure, leave it out. No URLs, no hashtags, no source names. No engagement bait ('repost if', "
         "'like if', 'follow for more'). No hype words (revolutionary, game-changing, groundbreaking). "
         "Plain words, active voice, a sharp human tone. At most one emoji in the whole thread."
