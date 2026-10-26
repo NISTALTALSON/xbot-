@@ -28,7 +28,7 @@ import re
 from datetime import datetime
 from bs4 import BeautifulSoup
 from io import BytesIO
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 try:
     import quality
@@ -408,12 +408,36 @@ def clean_title(title):
 #  ARTICLE CONTENT FETCHING
 # ─────────────────────────────────────────────────────────────
 
+BOT_UA = 'AISecurityDailyBot/1.0 (+https://github.com/NISTALTALSON/xbot-)'
+_ROBOTS_CACHE = {}
+
+
+def robots_allows(url):
+    """Respect robots.txt. Unknown or unreachable robots.txt means allowed; an explicit disallow means we do not fetch."""
+    try:
+        import urllib.robotparser
+        p = urlparse(url)
+        base = f"{p.scheme}://{p.netloc}"
+        if base not in _ROBOTS_CACHE:
+            rp = urllib.robotparser.RobotFileParser()
+            r = requests.get(base + "/robots.txt", headers={'User-Agent': BOT_UA}, timeout=6)
+            if r.status_code == 200:
+                rp.parse(r.text.splitlines())
+                _ROBOTS_CACHE[base] = rp
+            else:
+                _ROBOTS_CACHE[base] = True
+        rp = _ROBOTS_CACHE[base]
+        return True if rp is True else rp.can_fetch(BOT_UA, url)
+    except Exception:
+        return True
+
+
 def scrape_article_body(url):
     try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                          'AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36'
-        }
+        if not robots_allows(url):
+            print("   robots.txt disallows fetching this page - using the RSS summary only")
+            return ""
+        headers = {'User-Agent': BOT_UA}
         resp = requests.get(url, headers=headers, timeout=12)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.content, 'html.parser')
@@ -475,14 +499,10 @@ def gemini_summarize(title, body_text, category):
     )
 
     try:
-        resp = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}",
-            json={"contents": [{"parts": [{"text": prompt}]}]},
-            timeout=20
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        text = data['candidates'][0]['content']['parts'][0]['text'].strip()
+        import llm
+        text = (llm.generate(prompt, json_mode=False, temperature=0.7, timeout=25) or '').strip()
+        if not text:
+            return None
         # Hard truncate if Gemini went over
         if count_graphemes(text) > 220:
             # Try to find sentence boundary
@@ -527,14 +547,10 @@ def gemini_reply(post_text, category, used_replies):
     )
 
     try:
-        resp = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}",
-            json={"contents": [{"parts": [{"text": prompt}]}]},
-            timeout=12
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        reply = data['candidates'][0]['content']['parts'][0]['text'].strip()
+        import llm
+        reply = (llm.generate(prompt, json_mode=False, temperature=0.8, timeout=20) or '').strip()
+        if not reply:
+            return None
         reply = reply.strip('"\'')
 
         banned = ["great", "interesting", "wow", "this is", "indeed", "absolutely",
@@ -1519,7 +1535,11 @@ def main():
         platforms.append('mastodon')
 
     if GEMINI_API_KEY:
-        print("✅ Gemini — ready")
+        try:
+            import llm
+            llm.health_check()
+        except Exception as _le:
+            print(f'   [llm] health check error: {_le}')
     else:
         print("⚠️  Gemini key missing — using fallback pool (300+ replies)")
 
@@ -1758,9 +1778,13 @@ def main():
         except Exception as _ex:
             print(f'   [v5] analytics skipped: {_ex}')
 
-    if bsky_session:
+    # Unsolicited automated likes/replies to strangers are "spam" under Bluesky's Developer Guidelines and the
+    # reply persona was undisclosed automation. OFF unless ENGAGEMENT_ENABLED=true is set deliberately.
+    if bsky_session and os.environ.get('ENGAGEMENT_ENABLED', 'false').lower() == 'true':
         cats = categories_posted if categories_posted else ['artificial_intelligence', 'software_dev']
         run_engagement(bsky_session, cats)
+    elif bsky_session:
+        print('   Engagement engine is off (ENGAGEMENT_ENABLED not true) - no automated likes or replies')
 
     print(f"\n{'='*70}")
     print(f"✅ Run complete — {datetime.now().strftime('%H:%M:%S UTC')}")

@@ -4,7 +4,7 @@ A feed reader posts "the next item". A person running a news account does someth
 they look at what the *world* is talking about, notice when something suddenly blows up, remember
 what they already said, and decide whether the moment is worth speaking in. This models that:
 
-  attention   world_signals(): what Hacker News, Google News and Bluesky trending are on RIGHT NOW
+  attention   world_signals(): what Hacker News, Bluesky trending and our own 110+ feeds are on RIGHT NOW
   surprise    burst detection: a term that jumps far above its own baseline across many outlets
   convergence the same story from many independent outlets (quality._breaking_clusters)
   memory      what we covered, when, and how big the story was then (habituation + "developing story")
@@ -31,12 +31,6 @@ import quality as Q
 STATE_FILE = "brain_state.json"
 UA = {"User-Agent": "Mozilla/5.0 (compatible; AISecurityDailyBrain/1.0)"}
 
-GN_URL = "https://news.google.com/rss/search?q={q}&hl=en-US&gl=US&ceid=US:en"
-GN_QUERIES = [
-    "cybersecurity+OR+vulnerability+OR+hackers+OR+breach+when:1d",
-    "zero-day+OR+ransomware+OR+exploited+OR+outage+OR+patch+when:1d",
-    "AI+OR+OpenAI+OR+Anthropic+OR+Gemini+OR+LLM+when:1d",
-]
 HN_URL = "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=40"
 BSKY_TRENDING = "https://public.api.bsky.app/xrpc/app.bsky.unspecced.getTrendingTopics?limit=25"
 
@@ -89,15 +83,6 @@ def world_signals():
                           "weight": 1 + math.log10((h.get("points") or 0) + 1)})
     except Exception as ex:
         print(f"   [brain] HN signal unavailable: {str(ex)[:50]}")
-    for q in GN_QUERIES:  # Google News: what mainstream outlets are all running
-        try:
-            feed = feedparser.parse(_get(GN_URL.format(q=q)).content)
-            for e in feed.entries[:40]:
-                src = (e.get("source") or {}).get("title") or urlparse(e.get("link", "")).netloc
-                title = _clean_headline(e.get("title", ""))
-                items.append({"tokens": Q._tokens(title), "outlet": src.lower(), "title": title, "weight": 1.0})
-        except Exception as ex:
-            print(f"   [brain] Google News signal unavailable: {str(ex)[:50]}")
     try:  # Bluesky's own trending topics
         for t in _get(BSKY_TRENDING).json().get("topics", []):
             tk = Q._tokens(t.get("topic", ""))
@@ -106,6 +91,18 @@ def world_signals():
     except Exception as ex:
         print(f"   [brain] Bluesky trending unavailable: {str(ex)[:50]}")
     return items, trending
+
+
+def feed_items(entries):
+    """Our own RSS entries (fresh, <=36h) as world signals: the same story across many outlets IS the signal."""
+    out = []
+    for e in entries:
+        a = Q._age_hours(e)
+        if a is not None and a > 36:
+            continue
+        out.append({"tokens": Q._tokens(e["title"]), "outlet": Q._domain(e) or e.get("source", "").lower(),
+                    "title": e["title"], "weight": 1.0})
+    return out
 
 
 def world_clusters(items):
@@ -256,6 +253,7 @@ def think(new_entries, all_entries=None, persist=True):
     log = []
 
     items, trending = world_signals()
+    items += feed_items(all_entries)
     clusters = world_clusters(items)
     for c in clusters[:5]:
         log.append(f"world: {c['outlets']:>2} outlets | {c['title'][:70]}")

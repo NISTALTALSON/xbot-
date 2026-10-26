@@ -16,28 +16,16 @@ import requests
 
 import quality as Q
 
-MODELS = (os.environ.get("EDITOR_MODEL", "gemini-2.5-flash"), "gemini-2.0-flash")
-
-
 def _gemini(prompt, temperature=0.3):
-    key = os.environ.get("GEMINI_API_KEY", "")
-    if not key:
+    import llm
+    raw = llm.generate(prompt, json_mode=True, temperature=temperature, timeout=60)
+    if not raw:
         return None
-    for model in MODELS:
-        try:
-            r = requests.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-                params={"key": key},
-                json={"contents": [{"parts": [{"text": prompt}]}],
-                      "generationConfig": {"responseMimeType": "application/json", "temperature": temperature}},
-                timeout=60)
-            r.raise_for_status()
-            raw = r.json()["candidates"][0]["content"]["parts"][0]["text"]
-            raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M).strip()
-            return json.loads(raw)
-        except Exception as ex:
-            print(f"   [editor] {model} failed: {str(ex)[:70]}")
-    return None
+    try:
+        return json.loads(re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M).strip())
+    except Exception as ex:
+        print(f"   [editor] unreadable model output: {str(ex)[:60]}")
+        return None
 
 
 def performance_digest(n=40):

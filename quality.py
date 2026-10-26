@@ -348,23 +348,16 @@ def pick_linkpos():
 
 
 # ---------------------------------------------------------------- generation
+LEGAL = ("Legal safety: write in your own words and never copy sentences or distinctive phrasing from the source "
+         "(a quoted phrase must be under 12 words and in quotation marks). Report allegations, attacks and "
+         "attributions to named people, groups, companies or countries as reported claims ('reportedly', "
+         "'researchers say'), never as proven fact. Never name a private individual. Give no legal, medical or "
+         "financial advice and never tell anyone to buy or sell anything. Add no fact that is not in the material.\n")
+
+
 def _gemini_json(prompt):
-    key = os.environ.get("GEMINI_API_KEY", "")
-    if not key:
-        return None
-    for model in (os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"), "gemini-2.5-flash"):
-        try:
-            r = requests.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-                params={"key": key},
-                json={"contents": [{"parts": [{"text": prompt}]}],
-                      "generationConfig": {"responseMimeType": "application/json", "temperature": 0.8}},
-                timeout=30)
-            r.raise_for_status()
-            return r.json()["candidates"][0]["content"]["parts"][0]["text"]
-        except Exception as ex:
-            print(f"   [v5] gemini {model} failed: {str(ex)[:60]}")
-    return None
+    import llm
+    return llm.generate(prompt, json_mode=True, temperature=0.8, timeout=40)
 
 
 def parse_post_json(raw):
@@ -413,7 +406,7 @@ def generate_post(title, body_text, category, fmt, note=None):
         '- "body": 1-2 sentences, max 170 chars, the why-it-matters or the angle.\n'
         + ('- "followup": max 240 chars, 2-3 short numbered points a builder can act on or remember '
            '(what is new, limits or cost if stated, how to try or apply it). Facts from the excerpt only.\n' if want_fu else "")
-        + "\nRules: use ONLY facts present in the excerpt or the listed headlines; never invent numbers, names, CVE ids or dates; "
+        + "\n" + LEGAL + "Rules: use ONLY facts present in the excerpt or the listed headlines; never invent numbers, names, CVE ids or dates; "
         "if unsure, leave it out. No URLs, hashtags or source names. Plain words, active voice, sound like "
         "a sharp AI engineer sharing what they just read, not a press release. Avoid hype words like revolutionary, game-changing or groundbreaking. At most one emoji in the whole post, only if it adds meaning."
     )
@@ -432,6 +425,7 @@ def _critique(draft, title, body_text, note):
             + f"Draft JSON: {json.dumps(draft)}\n\n"
             'Score 1-10 on: specific hook (concrete fact, not vague), every fact present in the source material, '
             'a reason an engineer would stop scrolling, no hype words, no filler. '
+            'Also score 5 or lower and rewrite if it copies sentences from the source, states an allegation as proven fact, names a private individual, or gives advice to buy or sell. '
             'If the score is 8 or higher, return {"score": <n>} only. Otherwise return {"score": <n>, "hook": ..., '
             '"body": ..., "followup": ...} with the same limits (hook max 90 chars, body max 170, followup max 240) '
             "fixing the weaknesses, still using only facts from the source material."
@@ -686,7 +680,7 @@ def generate_thread(title, body_text, category, fmt, note=None):
         "- question: max 220 chars. A one-line takeaway, then ONE specific question that builders can answer from "
         "their own experience. Never 'thoughts?', never 'what do you think'.\n"
         "- alt: max 200 chars, plain description of a card image that carries the hook (for screen readers).\n"
-        "Rules: use ONLY facts present in the article text or the listed headlines; never invent numbers, names, versions, CVE ids or dates; "
+        + LEGAL + "Rules: use ONLY facts present in the article text or the listed headlines; never invent numbers, names, versions, CVE ids or dates; "
         "if unsure, leave it out. No URLs, no hashtags, no source names. No engagement bait ('repost if', "
         "'like if', 'follow for more'). No hype words (revolutionary, game-changing, groundbreaking). "
         "Plain words, active voice, a sharp human tone. At most one emoji in the whole thread."
