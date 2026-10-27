@@ -597,14 +597,24 @@ def build_x_messages(pkg, entry, fmt):
     return [f"X POST [{fmt}]\n\n{tweets[0]}{extra}\n\nREPLY WITH THE LINK:\n{link}{img}\n\n{X_PLAN}"]
 
 
+def _cm_safe(text):
+    """CallMeBot (Signal/WhatsApp) mangles some characters on its server: '$100k' loses '$1' (shell variable)
+    and apostrophes get stripped. Defuse both before sending. The zero-width space after '$' is invisible
+    and harmless when pasted into X; the typographic apostrophe is what X shows anyway."""
+    text = text.replace("'", "\u2019")
+    text = text.replace("$", "$\u200b")
+    return text
+
+
 def _deliver(msg):
     """Send one message to every configured channel (Signal / WhatsApp via CallMeBot, Telegram DM)."""
+    msg_raw = msg
     sphone = os.environ.get("SIGNAL_PHONE", "").strip()
     skey = os.environ.get("SIGNAL_APIKEY", "").strip()
     if sphone and skey:
         try:
             r = requests.get("https://signal.callmebot.com/signal/send.php",
-                             params={"phone": sphone, "apikey": skey, "text": msg}, timeout=30)
+                             params={"phone": sphone, "apikey": skey, "text": _cm_safe(msg_raw)}, timeout=30)
             print(f"   [v5] X draft -> Signal: HTTP {r.status_code}")
         except Exception as ex:
             print(f"   [v5] Signal draft failed: {str(ex)[:60]}")
@@ -613,7 +623,7 @@ def _deliver(msg):
     if phone and key:
         try:
             r = requests.get("https://api.callmebot.com/whatsapp.php",
-                             params={"phone": phone, "text": msg, "apikey": key}, timeout=30)
+                             params={"phone": phone, "text": _cm_safe(msg_raw), "apikey": key}, timeout=30)
             print(f"   [v5] X draft -> WhatsApp: HTTP {r.status_code}")
         except Exception as ex:
             print(f"   [v5] WhatsApp draft failed: {str(ex)[:60]}")
