@@ -584,17 +584,15 @@ def generate_x_package(entry, body_text, fmt):
 
 
 def build_x_messages(pkg, entry, fmt):
-    link = f"Source: {entry['link']}"
-    img = f"\nAttach: {pkg['image']}" if pkg.get("image") else ""
+    """Clean, paste-ready messages: each message is EXACTLY the text to paste into X, nothing else.
+    Tweets first (one message per tweet), poll options (if any) as bare lines, then the bare link
+    as its own message for the reply."""
     tweets = pkg["tweets"]
-    if len(tweets) > 1:
-        n = len(tweets)
-        msgs = [f"X THREAD [{fmt}] - {n} tweets coming, one message each.\n{X_PLAN}{img}"]
-        msgs += [f"[{i}/{n}]\n{t}" for i, t in enumerate(tweets, 1)]
-        msgs.append(f"LAST TWEET OF THE THREAD (the link):\n{link}")
-        return msgs
-    extra = ("\n\nCREATE A POLL WITH:\n" + "\n".join(f"- {o}" for o in pkg["poll"])) if pkg.get("poll") else ""
-    return [f"X POST [{fmt}]\n\n{tweets[0]}{extra}\n\nREPLY WITH THE LINK:\n{link}{img}\n\n{X_PLAN}"]
+    msgs = list(tweets)
+    if pkg.get("poll"):
+        msgs.append("\n".join(pkg["poll"]))
+    msgs.append(entry["link"])
+    return msgs
 
 
 def _cm_safe(text):
@@ -647,7 +645,7 @@ def send_x_draft(v2, entry, fmt, hashtags, dry=False, body_text=""):
         print(f"   [v5] X package: format={xfmt}, {len(pkg['tweets'])} tweet(s)")
     else:
         tweet, reply = build_x_draft(v2, entry, "")
-        msgs = [f"X POST [fallback]\n\n{tweet}\n\nREPLY WITH THE LINK:\n{reply}\n\n{X_PLAN}"]
+        msgs = [tweet, entry["link"]]
         print("   [v5] X package generation failed - sending the fallback draft")
     if dry:
         print("   ---- X DRAFT (would be sent to Signal/WhatsApp/Telegram) ----")
