@@ -1,1 +1,1 @@
-{"ts": "2026-10-29T06:29:34Z", "ok": true, "model": "gemini-3.6-flash", "tried": ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"], "error": ""}
+{"ts": "2026-10-29T13:45:00Z", "ok": false, "model": "", "tried": ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"], "error": "gemini-2.5-flash: HTTP 404 {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-fla"}
