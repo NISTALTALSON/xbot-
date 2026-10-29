@@ -525,8 +525,16 @@ X_KIND = {
     "paper": ["tldr", "list", "hot_take"],
     "other": ["tldr", "hot_take", "poll"],
 }
-X_PLAN = ("Post it soon, then stay ~15 min and reply to EVERY comment (author replies are the strongest signal). "
-          "Link goes in the reply, never in the tweet.")
+X_PLAN = (
+    "X PLAYBOOK for this run\n"
+    "1. Post tweet 1 now. Attach the image only if it shows something real (chart, table, screenshot); "
+    "skip decorative art.\n"
+    "2. Paste the link as your own first reply, never in the tweet.\n"
+    "3. Stay 30-60 min and answer every reply with substance. Conversation is what X ranks highest.\n"
+    "4. Before your next post, leave 5-10 specific replies under bigger AI accounts (add a fact or a "
+    "counterpoint, never 'great post'). Small accounts get spam-screened, so do not mass-reply."
+)
+_PLAN_SENT = False
 
 
 def _x_clip(t, limit=275):
@@ -577,6 +585,10 @@ def generate_x_package(entry, body_text, fmt):
         "Opinions must read clearly as opinion.\n"
         "- Plain words, short lines, line breaks for readability, no hype words (revolutionary, game-changing). "
         "At most one emoji in total.\n"
+        "- Write for replies: end with ONE question answerable in a few words (a number, a tool name, yes/no plus a reason) so replying takes five seconds. Replies are what X ranks highest.\n"
+        "- Take a clear, defensible stance where the format allows. A specific claim beats a neutral summary.\n"
+        "- Never use engagement bait ('RT if', 'like if', 'follow for more', 'tag someone').\n"
+        "- Tone: curious and constructive. Critique ideas and decisions, never individuals; avoid combative or negative-about-people wording.\n"
         '- "image_idea": one short line naming a real screenshot or chart from the article to attach '
         "(benchmark table, pricing table, architecture diagram). Never AI-generated art."
     )
@@ -636,7 +648,36 @@ def _deliver(msg):
             print(f"   [v5] Telegram draft failed: {type(ex).__name__}")
 
 
-def send_x_draft(v2, entry, fmt, hashtags, dry=False, body_text=""):
+def _deliver_image(image_url, image_bytes=None):
+    """Send the article image so it can be saved and attached on X.
+    Signal (CallMeBot) takes a public image URL; Telegram DM takes the downloaded bytes (or the URL)."""
+    if not image_url and not image_bytes:
+        return
+    sphone = os.environ.get("SIGNAL_PHONE", "").strip()
+    skey = os.environ.get("SIGNAL_APIKEY", "").strip()
+    if sphone and skey and image_url:
+        try:
+            r = requests.get("https://signal.callmebot.com/signal/send.php",
+                             params={"phone": sphone, "apikey": skey, "image": image_url}, timeout=45)
+            print(f"   [v7] X image -> Signal: HTTP {r.status_code} {r.text.strip()[:80]!r}")
+        except Exception as ex:
+            print(f"   [v7] Signal image failed: {str(ex)[:60]}")
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    chat = os.environ.get("TELEGRAM_DRAFT_CHAT_ID", "").strip()
+    if token and chat:
+        try:
+            api = f"https://api.telegram.org/bot{token}/sendPhoto"
+            if image_bytes:
+                from io import BytesIO
+                r = requests.post(api, data={"chat_id": chat}, files={"photo": ("image.jpg", BytesIO(image_bytes))}, timeout=30)
+            else:
+                r = requests.post(api, json={"chat_id": chat, "photo": image_url}, timeout=30)
+            print(f"   [v7] X image -> Telegram: HTTP {r.status_code}")
+        except Exception as ex:
+            print(f"   [v7] Telegram image failed: {type(ex).__name__}")
+
+
+def send_x_draft(v2, entry, fmt, hashtags, dry=False, body_text="", image_url=None, image_bytes=None):
     """Build an X-native post (own prompt and formats) and send it for manual posting."""
     xfmt = pick_x_format(entry)
     pkg = generate_x_package(entry, body_text, xfmt) if body_text else None
@@ -651,11 +692,19 @@ def send_x_draft(v2, entry, fmt, hashtags, dry=False, body_text=""):
         print("   ---- X DRAFT (would be sent to Signal/WhatsApp/Telegram) ----")
         for m in msgs:
             print(m + "\n   ..")
+        print(f"   [v7] image that would be sent: {image_url or 'none'}")
         return
+    _deliver_image(image_url, image_bytes)  # image first, so it is ready to attach to tweet 1
+    time.sleep(2)
     for i, m in enumerate(msgs):
         _deliver(m)
         if i < len(msgs) - 1:
             time.sleep(2)  # CallMeBot asks for at most one message per second
+    global _PLAN_SENT
+    if not _PLAN_SENT:  # the playbook goes out once per run, after the first story's draft
+        _PLAN_SENT = True
+        time.sleep(2)
+        _deliver(X_PLAN)
 
 
 # ---------------------------------------------------------------- v6: Bluesky thread (hook -> article -> question -> source)
