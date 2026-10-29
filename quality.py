@@ -595,16 +595,14 @@ def generate_x_package(entry, body_text, fmt):
 
 
 def build_x_messages(pkg, entry, fmt):
-    """One Signal message per tweet. The poll options (if any) and the reply link ride along under the
-    last tweet, after a clear 'Reply with:' line, so a single-tweet post arrives as ONE message.
-    Long-press the message, paste into X, and trim everything from the blank line before the label."""
-    tweets = list(pkg["tweets"])
-    tail = ""
+    """Copy-paste ready: every message is EXACTLY the text to paste into X, nothing added, nothing to trim.
+    Tweets first (one message per tweet), poll options (if any) as bare lines, then the bare link as its
+    own message for your first reply."""
+    msgs = list(pkg["tweets"])
     if pkg.get("poll"):
-        tail += "\n\nPoll options:\n" + "\n".join(pkg["poll"])
-    tail += "\n\nReply with:\n" + entry["link"]
-    tweets[-1] = tweets[-1] + tail
-    return tweets
+        msgs.append("\n".join(pkg["poll"]))
+    msgs.append(entry["link"])
+    return msgs
 
 
 def _cm_safe(text):
@@ -686,7 +684,7 @@ def send_x_draft(v2, entry, fmt, hashtags, dry=False, body_text="", image_url=No
         print(f"   [v5] X package: format={xfmt}, {len(pkg['tweets'])} tweet(s)")
     else:
         tweet, reply = build_x_draft(v2, entry, "")
-        msgs = [tweet + "\n\nReply with:\n" + entry["link"]]
+        msgs = [tweet, entry["link"]]
         print("   [v5] X package generation failed - sending the fallback draft")
     if dry:
         print("   ---- X DRAFT (would be sent to Signal/WhatsApp/Telegram) ----")
