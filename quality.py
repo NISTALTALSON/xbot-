@@ -534,7 +534,6 @@ X_PLAN = (
     "4. Before your next post, leave 5-10 specific replies under bigger AI accounts (add a fact or a "
     "counterpoint, never 'great post'). Small accounts get spam-screened, so do not mass-reply."
 )
-_PLAN_SENT = False
 
 
 def _x_clip(t, limit=275):
@@ -596,15 +595,16 @@ def generate_x_package(entry, body_text, fmt):
 
 
 def build_x_messages(pkg, entry, fmt):
-    """Clean, paste-ready messages: each message is EXACTLY the text to paste into X, nothing else.
-    Tweets first (one message per tweet), poll options (if any) as bare lines, then the bare link
-    as its own message for the reply."""
-    tweets = pkg["tweets"]
-    msgs = list(tweets)
+    """One Signal message per tweet. The poll options (if any) and the reply link ride along under the
+    last tweet, after a clear 'Reply with:' line, so a single-tweet post arrives as ONE message.
+    Long-press the message, paste into X, and trim everything from the blank line before the label."""
+    tweets = list(pkg["tweets"])
+    tail = ""
     if pkg.get("poll"):
-        msgs.append("\n".join(pkg["poll"]))
-    msgs.append(entry["link"])
-    return msgs
+        tail += "\n\nPoll options:\n" + "\n".join(pkg["poll"])
+    tail += "\n\nReply with:\n" + entry["link"]
+    tweets[-1] = tweets[-1] + tail
+    return tweets
 
 
 def _cm_safe(text):
@@ -686,7 +686,7 @@ def send_x_draft(v2, entry, fmt, hashtags, dry=False, body_text="", image_url=No
         print(f"   [v5] X package: format={xfmt}, {len(pkg['tweets'])} tweet(s)")
     else:
         tweet, reply = build_x_draft(v2, entry, "")
-        msgs = [tweet, entry["link"]]
+        msgs = [tweet + "\n\nReply with:\n" + entry["link"]]
         print("   [v5] X package generation failed - sending the fallback draft")
     if dry:
         print("   ---- X DRAFT (would be sent to Signal/WhatsApp/Telegram) ----")
@@ -700,11 +700,6 @@ def send_x_draft(v2, entry, fmt, hashtags, dry=False, body_text="", image_url=No
         _deliver(m)
         if i < len(msgs) - 1:
             time.sleep(2)  # CallMeBot asks for at most one message per second
-    global _PLAN_SENT
-    if not _PLAN_SENT:  # the playbook goes out once per run, after the first story's draft
-        _PLAN_SENT = True
-        time.sleep(2)
-        _deliver(X_PLAN)
 
 
 # ---------------------------------------------------------------- v6: Bluesky thread (hook -> article -> question -> source)
