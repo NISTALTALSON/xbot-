@@ -1659,12 +1659,13 @@ def main():
                 else:
                     print('   [v5] generation failed - using v4 summary format')
             if quality is not None and v2:
-                _x_img_url = entry.get('image_url') or fetch_og_image(link)
-                entry['image_url'] = _x_img_url  # reused by the Bluesky image step below
-                _x_img_bytes = download_image(_x_img_url) if _x_img_url else None
-                quality.send_x_draft(v2, entry, fmt, '', dry=dry_run, body_text=body_text,
-                                     image_url=_x_img_url if _x_img_bytes else None,
-                                     image_bytes=_x_img_bytes)
+                if quality.x_draft_allowed(dry_run):
+                    _x_img_url = entry.get('image_url') or fetch_og_image(link)
+                    entry['image_url'] = _x_img_url  # reused by the Bluesky image step below
+                    _x_img_bytes = download_image(_x_img_url) if _x_img_url else None
+                    quality.send_x_draft(v2, entry, fmt, '', dry=dry_run, body_text=body_text,
+                                         image_url=_x_img_url if _x_img_bytes else None,
+                                         image_bytes=_x_img_bytes)
 
             # v6: Bluesky gets a native mini-article thread
             t3 = quality.generate_thread(title, body_text, category, fmt or 'take', note=_note) if quality is not None else None

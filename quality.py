@@ -1,3 +1,4 @@
+import io
 """AISecurityDaily v5 reach layer.
 
 Adds, on top of bot.py (v4):
@@ -511,12 +512,13 @@ def build_x_draft(v2, entry, hashtags):
 
 # ---- X-native package (built from the open-sourced X ranking signals, see README notes in chat)
 X_FORMATS = {
-    "thread": "A 4-6 tweet breakdown thread. Tweet 1 is the hook. Each following tweet stands alone and is concrete "
-              "(names, numbers, tradeoffs from the excerpt). Last tweet: the takeaway plus one open question.",
-    "tldr": "ONE tweet: a bold factual first line, then 2-3 short lines (use the - character) of what matters, then one open question.",
-    "hot_take": "ONE tweet: a sharp, defensible opinion about what this means for AI builders, backed by one fact from the "
-                "excerpt, ending with a question that invites disagreement.",
-    "list": "ONE saveable tweet: a one-line hook, then 3-5 short numbered points a builder would bookmark. No question needed.",
+    "thread": "A 4-6 tweet breakdown thread. Tweet 1 is the hook and must work alone. Each following tweet stands alone and is "
+              "concrete (names, numbers, tradeoffs from the excerpt), one idea each. Last tweet: the takeaway plus one open question.",
+    "tldr": "ONE tweet: a bold factual first line, then 2-3 short lines (use the - character) of what matters and who it affects, "
+            "then one open question answerable in a few words.",
+    "hot_take": "ONE tweet: a sharp, defensible contrast (what most people assume vs what the excerpt shows) with the stakes for "
+                "AI builders, backed by one fact from the excerpt, ending with a question that invites a one-line answer.",
+    "list": "ONE tweet a reader would forward to a teammate: a one-line hook, then 3-5 short numbered points. No question needed.",
     "poll": "ONE tweet that frames the news in one line and asks a poll question, plus 2-4 poll options of at most 25 characters each.",
 }
 X_KIND = {
@@ -534,6 +536,72 @@ X_PLAN = (
     "4. Before your next post, leave 5-10 specific replies under bigger AI accounts (add a fact or a "
     "counterpoint, never 'great post'). Small accounts get spam-screened, so do not mass-reply."
 )
+
+
+REACH_ENGINE = (
+    "REACH ENGINE (how X ranks posts, and how people read them):\n"
+    "X scores every post as a weighted sum of PREDICTED actions. Reply, quote, repost, share by DM or copy-link, profile "
+    "click, follow, photo expand and dwell time push a post up. Not-interested, mute, block, report and scrolling past "
+    "fast push it down. Write for these, in this order:\n"
+    "1. STOP: first line under 70 characters with ONE concrete fact, number, name or contradiction. Open a curiosity gap "
+    "the body closes. Never a teaser that does not pay off (that earns not-interested).\n"
+    "2. READ: 3-6 short lines, one idea, plain words a tired reader gets in 3 seconds, line breaks, no wall of text. "
+    "Dwell time counts, so every line must earn the next.\n"
+    "3. SEND: include one line a reader would forward to a colleague with 'you need to see this'. It makes the sender look "
+    "informed (social currency). Say WHO it matters to ('if you ship agents to prod').\n"
+    "4. REPLY: end with a low-effort question that has a stake: pick A or B and say why, a number, a tool name. "
+    "A reader must be able to answer in under 10 seconds.\n"
+    "5. QUOTE: where the format allows, take a specific, defensible stance or contrast people can agree or disagree with. "
+    "Disagree with ideas and decisions, never with people.\n"
+    "Emotion: aim for surprise, concern or awe (high arousal but constructive). Never outrage, fear-mongering or hype.\n"
+    "Stay in ONE lane (AI engineering and AI security) so X can place the account in a topic cluster.\n"
+)
+X_STATE_FILE = "x_state.json"
+
+
+def _x_state():
+    try:
+        with io.open(X_STATE_FILE, encoding="utf-8") as f:
+            d = json.load(f)
+    except Exception:
+        d = {}
+    today = time.strftime("%Y-%m-%d", time.gmtime())
+    if d.get("date") != today:
+        d = {"date": today, "count": 0, "last_ts": d.get("last_ts", 0), "openers": d.get("openers", [])}
+    return d
+
+
+def x_draft_allowed(dry=False):
+    """Fewer, better X drafts. X decays each extra post from the same author in a feed, and you have to answer replies
+    for 30-60 minutes after each one, so cap the drafts per UTC day and keep a minimum gap between them."""
+    if dry:
+        return True
+    d = _x_state()
+    max_day = int(os.environ.get("X_MAX_DRAFTS_PER_DAY", "5") or 5)
+    gap = int(os.environ.get("X_MIN_GAP_MIN", "90") or 90) * 60
+    if d["count"] >= max_day:
+        print(f"   [v7] X draft skipped: {d['count']}/{max_day} already sent today")
+        return False
+    if time.time() - d.get("last_ts", 0) < gap:
+        print(f"   [v7] X draft skipped: last one was under {gap // 60} min ago")
+        return False
+    return True
+
+
+def _x_record(first_tweet):
+    d = _x_state()
+    d["count"] += 1
+    d["last_ts"] = int(time.time())
+    d["openers"] = (d.get("openers", []) + [(first_tweet or "").strip().split("\n")[0][:90]])[-8:]
+    try:
+        with io.open(X_STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(d, f)
+    except Exception:
+        pass
+
+
+def _x_recent_openers():
+    return [o for o in _x_state().get("openers", []) if o]
 
 
 def _x_clip(t, limit=275):
@@ -573,6 +641,10 @@ def generate_x_package(entry, body_text, fmt):
         "and builders. Write ONE post package for the story below.\n"
         f"Headline: {entry['title']}\nArticle excerpt:\n{body_text[:3000]}\n\n"
         f"Format: {X_FORMATS[fmt]}\n\n"
+        + REACH_ENGINE
+        + ("Recent openers, do NOT reuse their opening words or sentence shape (X pushes similar posts apart): "
+           + " | ".join(_x_recent_openers()) + "\n\n" if _x_recent_openers() else "\n")
+        +
         'Return JSON: {"tweets": [..], "poll_options": [..], "image_idea": ".."}. poll_options only for the poll format.\n'
         "Rules:\n"
         "- Every tweet at most 270 characters. No hashtags, no links, no 'BREAKING', no thread emoji.\n"
@@ -692,6 +764,7 @@ def send_x_draft(v2, entry, fmt, hashtags, dry=False, body_text="", image_url=No
             print(m + "\n   ..")
         print(f"   [v7] image that would be sent: {image_url or 'none'}")
         return
+    _x_record(msgs[0])
     _deliver_image(image_url, image_bytes)  # image first, so it is ready to attach to tweet 1
     time.sleep(2)
     for i, m in enumerate(msgs):
