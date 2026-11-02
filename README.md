@@ -2,7 +2,7 @@
 
 Automatically posts AI and cybersecurity news to your X (Twitter) account every 6 hours..
 
-## Features
+## Features..
 
 - 🤖 Fully automated - runs on GitHub Actions (100% free)
 - 📰 Pulls from 9+ top RSS feeds (AI, cybersecurity, ethical hacking)
