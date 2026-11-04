@@ -15,7 +15,7 @@ Automatically posts AI and cybersecurity news to your X (Twitter) account every 
 
 **AI:**
 - ArXiv AI Research
-- Google AI Blog
+- Google AI Blog.
 - OpenAI Blog
 
 **Cybersecurity & Ethical Hacking:**
