@@ -24,7 +24,7 @@ Automatically posts AI and cybersecurity news to your X (Twitter) account every 
 - Dark Reading
 - Krebs on Security
 - Schneier on Security
-- Threatpost
+- Threatpost.
 
 ## Setup Instructions.
 
