@@ -8,7 +8,7 @@ Automatically posts AI and cybersecurity news to your X (Twitter) account every 
 - 📰 Pulls from 9+ top RSS feeds (AI, cybersecurity, ethical hacking)
 - 🔄 Posts 2-3 random updates every 6 hours
 - 🚫 Avoids duplicates - tracks what's already posted
-- #️⃣ Automatically adds relevant hashtags
+- #️⃣ Automatically adds relevant hashtags.
 - ⚡ Rate limiting to avoid API issues
 
 ## News Sources
