@@ -14,7 +14,7 @@ Automatically posts AI and cybersecurity news to your X (Twitter) account every 
 ## News Sources
 
 **AI:**
-- ArXiv AI Research
+- ArXiv AI Research.
 - Google AI Blog.
 - OpenAI Blog
 
