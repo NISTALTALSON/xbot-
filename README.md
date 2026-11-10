@@ -9,14 +9,14 @@ Automatically posts AI and cybersecurity news to your X (Twitter) account every 
 - 🔄 Posts 2-3 random updates every 6 hours.
 - 🚫 Avoids duplicates - tracks what's already posted
 - #️⃣ Automatically adds relevant hashtags.
-- ⚡ Rate limiting to avoid API issues
+- ⚡ Rate limiting to avoid API issues.
 
 ## News Sources
 
 **AI:**
 - ArXiv AI Research.
 - Google AI Blog.
-- OpenAI Blog
+- OpenAI Blog.
 
 **Cybersecurity & Ethical Hacking:**
 - BleepingComputer
